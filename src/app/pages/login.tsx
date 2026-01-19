@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/app/context/auth-context';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
@@ -8,27 +7,43 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { GraduationCap } from 'lucide-react';
+import { loginUser } from '@/services/authService'; // ✅ import backend login service
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'student' | 'teacher' | 'admin'>('student');
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     if (!email || !password) {
       setError('Please fill in all fields');
+      setLoading(false);
       return;
     }
 
-    // Mock login validation
-    login(email, password, role);
-    navigate(`/${role}/dashboard`);
+    try {
+      const data = await loginUser({ email, password });
+
+      if (data.token) {
+        // Save JWT
+        localStorage.setItem('token', data.token);
+        // Redirect to role dashboard
+        navigate(`/${role}/dashboard`);
+      } else {
+        setError(data.message || 'Login failed');
+      }
+    } catch (err: any) {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,17 +102,12 @@ export function LoginPage() {
                 </Alert>
               )}
 
-              <Button type="submit" className="w-full">
-                Sign In
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Signing In...' : 'Sign In'}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <div className="text-sm text-center">
-              <span className="text-muted-foreground">Demo Credentials: </span>
-              <br />
-              <span className="text-xs">Any email/password combination works</span>
-            </div>
             <div className="text-sm text-center">
               Don't have an account?{' '}
               <Link to="/register" className="text-primary hover:underline">

@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { GraduationCap } from 'lucide-react';
 import { Textarea } from '@/app/components/ui/textarea';
+import { registerUser } from '@/services/authService'; // ✅ import API service
 
 export function RegisterPage() {
   const [searchParams] = useSearchParams();
@@ -26,10 +27,12 @@ export function RegisterPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
 
+    // Validation
     if (!name || !email || !password || !confirmPassword) {
       setError('Please fill in all required fields');
       return;
@@ -45,11 +48,27 @@ export function RegisterPage() {
       return;
     }
 
-    // Mock registration
-    setSuccess(true);
-    setTimeout(() => {
-      navigate('/login');
-    }, 2000);
+    // ✅ Call backend API
+    const data = await registerUser({
+      name,
+      email,
+      password,
+      role,
+      subject,
+      qualification,
+      experience
+    });
+
+    if (data.token) {
+      // Registration success
+      localStorage.setItem('token', data.token);
+      setSuccess(true);
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+    } else {
+      setError(data.message || data.error || 'Registration failed');
+    }
   };
 
   return (
