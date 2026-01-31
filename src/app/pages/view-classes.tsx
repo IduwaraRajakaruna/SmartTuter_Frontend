@@ -1,15 +1,19 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { ClassCard } from '@/app/components/class-card';
-import { mockClasses } from '@/app/lib/mock-data';
-import { Button } from '@/app/components/ui/button';
+import { PublicNav } from '@/app/components/public-nav';
+import { EmptyState } from '@/app/components/empty-state';
+import { EnrollmentDialog } from '@/app/components/enrollment-dialog';
+import { mockClasses, Class } from '@/app/lib/mock-data';
 import { Input } from '@/app/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { GraduationCap, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function ViewClassesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [subjectFilter, setSubjectFilter] = useState<string>('all');
+  const [selectedClass, setSelectedClass] = useState<Class | null>(null);
+  const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
 
   const subjects = ['all', ...new Set(mockClasses.map(c => c.subject))];
 
@@ -23,28 +27,26 @@ export function ViewClassesPage() {
     return matchesSearch && matchesSubject;
   });
 
+  const handleEnroll = (classId: string) => {
+    const classData = mockClasses.find(c => c.id === classId);
+    if (classData) {
+      setSelectedClass(classData);
+      setIsEnrollDialogOpen(true);
+    }
+  };
+
+  const handleViewDetails = (classId: string) => {
+    toast.info('Class details page - To be implemented');
+  };
+
+  const handleEnrollSuccess = () => {
+    toast.success('Successfully enrolled! Check your dashboard.');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="border-b">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <GraduationCap className="w-8 h-8 text-primary" />
-            <span className="text-2xl">TuitionHub</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link to="/teachers">
-              <Button variant="ghost">Our Teachers</Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="outline">Login</Button>
-            </Link>
-            <Link to="/register">
-              <Button>Get Started</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <PublicNav />
 
       <div className="container mx-auto px-6 py-8">
         <div className="mb-8">
@@ -89,18 +91,23 @@ export function ViewClassesPage() {
             <ClassCard
               key={classData.id}
               classData={classData}
-              onViewDetails={() => {}}
-              onEnroll={() => {}}
+              onViewDetails={handleViewDetails}
+              onEnroll={handleEnroll}
             />
           ))}
         </div>
 
         {filteredClasses.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No classes found matching your criteria</p>
-          </div>
+          <EmptyState message="No classes found matching your criteria" />
         )}
       </div>
+
+      <EnrollmentDialog
+        classData={selectedClass}
+        isOpen={isEnrollDialogOpen}
+        onClose={() => setIsEnrollDialogOpen(false)}
+        onEnrollSuccess={handleEnrollSuccess}
+      />
     </div>
   );
 }

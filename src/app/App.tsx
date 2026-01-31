@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/app/context/auth-context';
-import { Navigation } from '@/app/components/navigation';
 import { Toaster } from '@/app/components/ui/sonner';
+import { DashboardLayout } from '@/app/layouts/dashboard-layout';
 
 // Public Pages
 import { LandingPage } from '@/app/pages/landing';
@@ -12,9 +12,13 @@ import { ViewTeachersPage } from '@/app/pages/view-teachers';
 
 // Student Pages
 import { StudentDashboard } from '@/app/pages/student-dashboard';
+import { StudentMaterialsPage } from '@/app/pages/student-materials';
 
 // Teacher Pages
 import { TeacherDashboard } from '@/app/pages/teacher-dashboard';
+import { ManageClasses } from '@/app/pages/teacher-manage-classes';
+import { CreateClass } from '@/app/pages/teacher-create-class';
+import { StudyMaterialsPage } from '@/app/pages/teacher-materials';
 
 // Admin Pages
 import { AdminDashboard } from '@/app/pages/admin-dashboard';
@@ -32,16 +36,6 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
   }
 
   return <>{children}</>;
-}
-
-// Layout Component
-function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      <main>{children}</main>
-    </div>
-  );
 }
 
 // App Router
@@ -75,6 +69,16 @@ function AppRouter() {
                 <h1 className="text-3xl mb-4">My Classes</h1>
                 <p className="text-muted-foreground">View and manage your enrolled classes</p>
               </div>
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/materials"
+        element={
+          <ProtectedRoute allowedRoles={['student']}>
+            <DashboardLayout>
+              <StudentMaterialsPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -135,10 +139,17 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['teacher']}>
             <DashboardLayout>
-              <div className="p-6">
-                <h1 className="text-3xl mb-4">Manage Classes</h1>
-                <p className="text-muted-foreground">Create and manage your classes</p>
-              </div>
+              <ManageClasses />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/teacher/classes/create"
+        element={
+          <ProtectedRoute allowedRoles={['teacher']}>
+            <DashboardLayout>
+              <CreateClass />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -148,10 +159,7 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['teacher']}>
             <DashboardLayout>
-              <div className="p-6">
-                <h1 className="text-3xl mb-4">Study Materials</h1>
-                <p className="text-muted-foreground">Upload and manage learning resources</p>
-              </div>
+              <StudyMaterialsPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

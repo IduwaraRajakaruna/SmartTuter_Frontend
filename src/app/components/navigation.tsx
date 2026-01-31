@@ -23,6 +23,7 @@ import {
   FileText,
   UserCheck,
   BarChart,
+  FolderOpen,
 } from 'lucide-react';
 import { cn } from '@/app/components/ui/utils';
 
@@ -38,6 +39,7 @@ export function Navigation() {
         return [
           { icon: LayoutDashboard, label: 'Dashboard', to: '/student/dashboard' },
           { icon: BookOpen, label: 'My Classes', to: '/student/classes' },
+          { icon: FolderOpen, label: 'Materials', to: '/student/materials' },
           { icon: CreditCard, label: 'Payments', to: '/student/payments' },
           { icon: Star, label: 'Reviews', to: '/student/reviews' },
           { icon: User, label: 'Profile', to: '/student/profile' },

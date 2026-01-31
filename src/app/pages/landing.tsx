@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/app/components/ui/button';
-import { Card, CardContent } from '@/app/components/ui/card';
+import { PublicNav } from '@/app/components/public-nav';
+import { FeatureCard } from '@/app/components/feature-card';
+import { StatsSection } from '@/app/components/stats-section';
 import { GraduationCap, BookOpen, Users, Video, Star, Award } from 'lucide-react';
 
 export function LandingPage() {
@@ -45,28 +47,7 @@ export function LandingPage() {
   return (
     <div className="min-h-screen">
       {/* Navigation */}
-      <nav className="border-b">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <GraduationCap className="w-8 h-8 text-primary" />
-            <span className="text-2xl">TuitionHub</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link to="/classes">
-              <Button variant="ghost">Browse Classes</Button>
-            </Link>
-            <Link to="/teachers">
-              <Button variant="ghost">Our Teachers</Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="outline">Login</Button>
-            </Link>
-            <Link to="/register">
-              <Button>Get Started</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <PublicNav />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-20">
@@ -107,41 +88,27 @@ export function LandingPage() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {features.map((feature, index) => (
-              <Card key={index} className="hover:shadow-xl transition-all hover:-translate-y-1 border-none shadow-md">
-                <CardContent className="p-6">
-                  <div className={`w-14 h-14 rounded-xl ${feature.bgColor} flex items-center justify-center mb-4`}>
-                    <div className={`bg-gradient-to-br ${feature.color} p-3 rounded-lg`}>
-                      <feature.icon className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                  <h3 className="text-lg mb-2">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
+              <FeatureCard
+                key={index}
+                icon={feature.icon}
+                title={feature.title}
+                description={feature.description}
+                color={feature.color}
+                bgColor={feature.bgColor}
+              />
             ))}
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-primary/5">
-        <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto text-center">
-            <div>
-              <h3 className="text-4xl mb-2">500+</h3>
-              <p className="text-muted-foreground">Active Students</p>
-            </div>
-            <div>
-              <h3 className="text-4xl mb-2">50+</h3>
-              <p className="text-muted-foreground">Expert Teachers</p>
-            </div>
-            <div>
-              <h3 className="text-4xl mb-2">100+</h3>
-              <p className="text-muted-foreground">Classes Available</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <StatsSection 
+        stats={[
+          { value: '500+', label: 'Active Students' },
+          { value: '50+', label: 'Expert Teachers' },
+          { value: '100+', label: 'Classes Available' }
+        ]}
+      />
 
       {/* CTA Section */}
       <section className="py-20 bg-background">

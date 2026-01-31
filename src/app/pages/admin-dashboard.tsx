@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { StatCard } from '@/app/components/stat-card';
+import { TeacherApprovalDialog } from '@/app/components/teacher-approval-dialog';
 import { Users, GraduationCap, CreditCard, FileText, TrendingUp, AlertCircle } from 'lucide-react';
-import { mockTeachers, mockStudents, mockPayments, mockClasses } from '@/app/lib/mock-data';
+import { mockTeachers, mockStudents, mockPayments, mockClasses, Teacher } from '@/app/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
@@ -12,13 +14,43 @@ import {
   TableHeader,
   TableRow,
 } from '@/app/components/ui/table';
+import { toast } from 'sonner';
 
 export function AdminDashboard() {
-  const pendingTeachers = mockTeachers.filter(t => t.status === 'pending');
+  const [teachers, setTeachers] = useState(mockTeachers);
+  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject' | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const pendingTeachers = teachers.filter(t => t.status === 'pending');
   const totalRevenue = mockPayments
     .filter(p => p.status === 'completed')
     .reduce((sum, p) => sum + p.amount, 0);
   const pendingPayments = mockPayments.filter(p => p.status === 'pending');
+
+  const handleApprovalAction = (teacher: Teacher, action: 'approve' | 'reject') => {
+    setSelectedTeacher(teacher);
+    setApprovalAction(action);
+    setIsDialogOpen(true);
+  };
+
+  const handleConfirmApproval = (teacherId: string, action: 'approve' | 'reject', reason?: string) => {
+    // Update teacher status
+    setTeachers(prev => prev.map(t => 
+      t.id === teacherId 
+        ? { ...t, status: action === 'approve' ? 'active' : 'inactive' } 
+        : t
+    ));
+
+    // Mock API call - in real app this would call backend
+    console.log(`${action} teacher ${teacherId}`, reason);
+
+    toast.success(
+      action === 'approve' 
+        ? 'Teacher approved successfully!' 
+        : 'Teacher application rejected'
+    );
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -104,10 +136,18 @@ export function AdminDashboard() {
                     <TableCell>{teacher.joinedDate}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                        <Button 
+                          size="sm" 
+                          className="bg-green-600 hover:bg-green-700"
+                          onClick={() => handleApprovalAction(teacher, 'approve')}
+                        >
                           Approve
                         </Button>
-                        <Button size="sm" variant="destructive">
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => handleApprovalAction(teacher, 'reject')}
+                        >
                           Reject
                         </Button>
                       </div>
@@ -119,6 +159,14 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
       )}
+
+      <TeacherApprovalDialog
+        teacher={selectedTeacher}
+        action={approvalAction}
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onConfirm={handleConfirmApproval}
+      />
 
       {/* Recent Payments */}
       <Card>

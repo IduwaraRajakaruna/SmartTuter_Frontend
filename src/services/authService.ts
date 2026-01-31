@@ -1,5 +1,4 @@
-import { API_BASE_URL } from "../config";
-
+// Mock auth service - no backend connections
 export interface RegisterData {
   name: string;
   email: string;
@@ -15,36 +14,53 @@ export interface LoginData {
   password: string;
 }
 
-// ✅ Register user
-export const registerUser = async (data: RegisterData) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+// Mock users database
+const mockUsers = [
+  { email: "student@test.com", password: "123456", role: "student", name: "John Smith" },
+  { email: "teacher@test.com", password: "123456", role: "teacher", name: "Dr. Sarah Johnson" },
+  { email: "admin@test.com", password: "123456", role: "admin", name: "Admin User" },
+];
 
-    return await response.json();
-  } catch (err: any) {
-    return { error: "Network error" };
+// Mock register user
+export const registerUser = async (data: RegisterData) => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Check if user already exists
+  const existingUser = mockUsers.find(u => u.email === data.email);
+  if (existingUser) {
+    return { error: "User already exists" };
   }
+  
+  // Add new user to mock database
+  mockUsers.push({
+    email: data.email,
+    password: data.password,
+    role: data.role,
+    name: data.name
+  });
+  
+  return { 
+    token: "mock-jwt-token-" + Date.now(),
+    message: "Registration successful"
+  };
 };
 
-// ✅ Login user
+// Mock login user
 export const loginUser = async (data: LoginData) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    return await response.json();
-  } catch (err: any) {
-    return { error: "Network error" };
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Find user in mock database
+  const user = mockUsers.find(u => u.email === data.email && u.password === data.password);
+  
+  if (!user) {
+    return { error: "Invalid credentials" };
   }
+  
+  return { 
+    token: "mock-jwt-token-" + Date.now(),
+    user: user,
+    message: "Login successful"
+  };
 };

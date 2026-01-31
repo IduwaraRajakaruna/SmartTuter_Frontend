@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
-import { Label } from '@/app/components/ui/label';
+import { FormField } from '@/app/components/form-field';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { GraduationCap } from 'lucide-react';
-import { loginUser } from '@/services/authService'; // ✅ import backend login service
+import { useAuth } from '@/app/context/auth-context';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -16,6 +15,7 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,18 +29,15 @@ export function LoginPage() {
     }
 
     try {
-      const data = await loginUser({ email, password });
-
-      if (data.token) {
-        // Save JWT
-        localStorage.setItem('token', data.token);
-        // Redirect to role dashboard
+      // Use mock login from context
+      login(email, password, role);
+      
+      // Redirect to role dashboard
+      setTimeout(() => {
         navigate(`/${role}/dashboard`);
-      } else {
-        setError(data.message || 'Login failed');
-      }
+      }, 500);
     } catch (err: any) {
-      setError('Network error. Please try again.');
+      setError('Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -75,26 +72,22 @@ export function LoginPage() {
             </Tabs>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
+              <FormField
+                id="email"
+                label="Email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={setEmail}
+              />
+              <FormField
+                id="password"
+                label="Password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={setPassword}
+              />
 
               {error && (
                 <Alert variant="destructive">
