@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { TeacherCard } from '@/app/components/teacher-card';
+import { PublicNav } from '@/app/components/public-nav';
+import { EmptyState } from '@/app/components/empty-state';
 import { mockTeachers } from '@/app/lib/mock-data';
-import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
-import { GraduationCap, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 export function ViewTeachersPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,25 +23,7 @@ export function ViewTeachersPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="border-b">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <GraduationCap className="w-8 h-8 text-primary" />
-            <span className="text-2xl">TuitionHub</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link to="/classes">
-              <Button variant="ghost">Browse Classes</Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="outline">Login</Button>
-            </Link>
-            <Link to="/register">
-              <Button>Get Started</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <PublicNav />
 
       <div className="container mx-auto px-6 py-8">
         <div className="mb-8">
@@ -80,9 +62,7 @@ export function ViewTeachersPage() {
         </div>
 
         {filteredTeachers.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No teachers found matching your search</p>
-          </div>
+          <EmptyState message="No teachers found matching your search" />
         )}
       </div>
     </div>

@@ -53,7 +53,7 @@ export function ClassCard({ classData, onEnroll, onViewDetails, showActions = tr
           </div>
           <div className="flex items-center text-sm">
             <DollarSign className="w-4 h-4 mr-2 text-muted-foreground" />
-            <span className="font-semibold">₹{classData.price}</span>
+            <span className="font-semibold">{classData.price}</span>
           </div>
         </div>
       </CardContent>

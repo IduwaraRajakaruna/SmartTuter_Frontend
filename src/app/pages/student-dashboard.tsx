@@ -1,5 +1,6 @@
 import { StatCard } from '@/app/components/stat-card';
 import { ClassCard } from '@/app/components/class-card';
+import { PaymentListItem } from '@/app/components/payment-list-item';
 import { BookOpen, Calendar, CreditCard, Star } from 'lucide-react';
 import { mockClasses, mockPayments } from '@/app/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
@@ -109,18 +110,7 @@ export function StudentDashboard() {
         <CardContent>
           <div className="space-y-4">
             {completedPayments.slice(0, 3).map((payment) => (
-              <div key={payment.id} className="flex items-center justify-between py-3 border-b last:border-0">
-                <div className="flex-1">
-                  <p className="font-medium">{payment.className}</p>
-                  <p className="text-sm text-muted-foreground">{payment.date}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">₹{payment.amount}</p>
-                  <Badge className="bg-green-500/10 text-green-700 border-green-200">
-                    {payment.status}
-                  </Badge>
-                </div>
-              </div>
+              <PaymentListItem key={payment.id} payment={payment} />
             ))}
           </div>
         </CardContent>
