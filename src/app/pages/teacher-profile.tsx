@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { TeacherProfileForm } from '@/app/components/teacher-profile/teacher-profile-form';
 import { TeacherProfileHeader } from '@/app/components/teacher-profile/teacher-profile-header';
 import { TeacherProfileSummary } from '@/app/components/teacher-profile/teacher-profile-summary';
+import { StudentThemeToggle } from '@/app/components/student-profile/student-theme-toggle';
 import { useAuth } from '@/app/context/auth-context';
 import { mockClasses, mockReviews, mockTeachers } from '@/app/lib/mock-data';
 import { toast } from 'sonner';
@@ -69,12 +70,15 @@ export function TeacherProfilePage() {
           zoomLink={formState.zoomLink}
           onSave={handleSave}
         />
-        <TeacherProfileSummary
-          activeClasses={activeClasses}
-          upcomingClasses={upcomingClasses}
-          totalStudents={totalStudents}
-          averageRating={averageRating}
-        />
+        <div className="space-y-6">
+          <TeacherProfileSummary
+            activeClasses={activeClasses}
+            upcomingClasses={upcomingClasses}
+            totalStudents={totalStudents}
+            averageRating={averageRating}
+          />
+          <StudentThemeToggle />
+        </div>
       </div>
     </div>
   );
