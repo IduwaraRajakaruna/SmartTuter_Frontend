@@ -5,10 +5,12 @@ import { TeacherProfileSummary } from '@/app/components/teacher-profile/teacher-
 import { StudentThemeToggle } from '@/app/components/student-profile/student-theme-toggle';
 import { useAuth } from '@/app/context/auth-context';
 import { mockClasses, mockReviews, mockTeachers } from '@/app/lib/mock-data';
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent } from '@/app/components/ui/card';
 import { toast } from 'sonner';
 
 export function TeacherProfilePage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const teacherId = user?.id ?? 't1';
   const teacher = mockTeachers.find(t => t.id === teacherId) ?? mockTeachers[0];
   const [formState, setFormState] = useState({
@@ -78,6 +80,21 @@ export function TeacherProfilePage() {
             averageRating={averageRating}
           />
           <StudentThemeToggle />
+          <Card>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="font-medium">Sign out</p>
+                <p className="text-sm text-muted-foreground">End your current session.</p>
+              </div>
+              <Button
+                variant="outline"
+                className="dark:border-white/20 dark:text-white dark:hover:bg-white/10"
+                onClick={logout}
+              >
+                Logout
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
