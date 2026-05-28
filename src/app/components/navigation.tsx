@@ -1,17 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/app/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/app/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/app/components/ui/avatar';
 import { useAuth } from '@/app/context/auth-context';
 import {
-  Home,
   BookOpen,
   Users,
   CreditCard,
@@ -22,7 +12,6 @@ import {
   GraduationCap,
   FileText,
   UserCheck,
-  BarChart,
   FolderOpen,
 } from 'lucide-react';
 import { cn } from '@/app/components/ui/utils';
@@ -67,12 +56,6 @@ export function Navigation() {
 
   const navItems = getNavigationItems();
 
-  const initials = user.name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase();
-
   return (
     <div className="border-b">
       <div className="flex h-16 items-center px-6">
@@ -99,8 +82,19 @@ export function Navigation() {
           })}
         </nav>
 
-        {/* Right side user dropdown removed to hide the teacher/student/admin button */}
-        <div className="ml-auto" />
+        <div className="ml-auto">
+          {user.role === 'admin' && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 dark:border-white/20 dark:text-white dark:hover:bg-white/10"
+              onClick={logout}
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

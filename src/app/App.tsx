@@ -29,10 +29,18 @@ import { TeacherProfilePage } from '@/app/pages/teacher-profile';
 
 // Admin Pages
 import { AdminDashboard } from '@/app/pages/admin-dashboard';
+import { AdminApprovalsPage } from '@/app/pages/admin-approvals';
+import { AdminUsersPage } from '@/app/pages/admin-users';
+import { AdminPaymentsPage } from '@/app/pages/admin-payments';
+import { AdminContentPage } from '@/app/pages/admin-content';
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles: string[] }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isInitialized } = useAuth();
+
+  if (!isInitialized) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -196,10 +204,7 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['admin']}>
             <DashboardLayout>
-              <div className="p-6">
-                <h1 className="text-3xl mb-4">Teacher Approvals</h1>
-                <p className="text-muted-foreground">Review and approve teacher registrations</p>
-              </div>
+              <AdminApprovalsPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -209,10 +214,7 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['admin']}>
             <DashboardLayout>
-              <div className="p-6">
-                <h1 className="text-3xl mb-4">User Management</h1>
-                <p className="text-muted-foreground">Manage students and teachers</p>
-              </div>
+              <AdminUsersPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -222,10 +224,7 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['admin']}>
             <DashboardLayout>
-              <div className="p-6">
-                <h1 className="text-3xl mb-4">Payment Monitoring</h1>
-                <p className="text-muted-foreground">View and manage all transactions</p>
-              </div>
+              <AdminPaymentsPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -235,10 +234,7 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['admin']}>
             <DashboardLayout>
-              <div className="p-6">
-                <h1 className="text-3xl mb-4">Content Monitoring</h1>
-                <p className="text-muted-foreground">Monitor uploaded study materials</p>
-              </div>
+              <AdminContentPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

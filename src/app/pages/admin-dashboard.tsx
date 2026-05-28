@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StatCard } from '@/app/components/stat-card';
 import { TeacherApprovalDialog } from '@/app/components/teacher-approval-dialog';
+import { StudentThemeToggle } from '@/app/components/student-profile/student-theme-toggle';
 import { Users, GraduationCap, CreditCard, FileText, TrendingUp, AlertCircle } from 'lucide-react';
 import { mockTeachers, mockStudents, mockPayments, mockClasses, Teacher } from '@/app/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
@@ -17,6 +19,7 @@ import {
 import { toast } from 'sonner';
 
 export function AdminDashboard() {
+  const navigate = useNavigate();
   const [teachers, setTeachers] = useState(mockTeachers);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [approvalAction, setApprovalAction] = useState<'approve' | 'reject' | null>(null);
@@ -93,15 +96,25 @@ export function AdminDashboard() {
         />
       </div>
 
+      <div className="grid lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2" />
+        <StudentThemeToggle />
+      </div>
+
       {/* Alerts */}
       {pendingTeachers.length > 0 && (
-        <Card className="border-yellow-200 bg-yellow-50">
+        <Card className="border-red-400 bg-gray-400">
           <CardContent className="p-4 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-yellow-600" />
-            <p className="text-sm">
+            <AlertCircle className="w-5 h-5 text-red-700" />
+            <p className="text-sm text-white">
               You have {pendingTeachers.length} teacher approval{pendingTeachers.length > 1 ? 's' : ''} pending review
             </p>
-            <Button variant="outline" size="sm" className="ml-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto"
+              onClick={() => navigate('/admin/approvals')}
+            >
               Review Now
             </Button>
           </CardContent>
