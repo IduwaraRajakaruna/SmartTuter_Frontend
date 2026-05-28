@@ -141,7 +141,7 @@ export function CreateClass() {
             <div className="grid md:grid-cols-2 gap-4">
               <FormField
                 id="price"
-                label="Price (₹)"
+                label="Price (Rs)"
                 type="number"
                 placeholder="5000"
                 value={formData.price}

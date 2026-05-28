@@ -47,7 +47,7 @@ export function StudentPaymentsTable({ payments }: StudentPaymentsTableProps) {
         {payments.map(payment => (
           <TableRow key={payment.id}>
             <TableCell className="font-medium">{payment.className}</TableCell>
-            <TableCell>₹{payment.amount}</TableCell>
+            <TableCell>Rs {payment.amount}</TableCell>
             <TableCell className="capitalize">{payment.method}</TableCell>
             <TableCell>{payment.date}</TableCell>
             <TableCell>

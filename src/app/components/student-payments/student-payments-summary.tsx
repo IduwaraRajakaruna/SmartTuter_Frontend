@@ -16,7 +16,7 @@ export function StudentPaymentsSummary({
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
       <StatCard
         title="Total Spent"
-        value={`₹${totalSpent.toLocaleString()}`}
+        value={`Rs ${totalSpent.toLocaleString()}`}
         icon={Wallet}
         description="Completed payments"
         color="green"

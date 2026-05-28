@@ -82,7 +82,7 @@ export function EnrollmentDialog({ classData, isOpen, onClose, onEnrollSuccess }
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Amount</span>
-                  <span className="text-lg font-bold">₹{classData.price}</span>
+                  <span className="text-lg font-bold">Rs {classData.price}</span>
                 </div>
               </div>
 
@@ -119,7 +119,7 @@ export function EnrollmentDialog({ classData, isOpen, onClose, onEnrollSuccess }
                 Cancel
               </Button>
               <Button onClick={handleConfirmPayment}>
-                Pay ₹{classData.price}
+                Pay Rs {classData.price}
               </Button>
             </DialogFooter>
           </>
