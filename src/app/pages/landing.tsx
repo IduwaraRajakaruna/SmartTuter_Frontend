@@ -11,36 +11,36 @@ export function LandingPage() {
       icon: BookOpen,
       title: 'Wide Range of Subjects',
       description: 'From Mathematics to Literature, find expert tutors for every subject',
-      color: 'from-blue-500 to-cyan-500',
-      bgColor: 'bg-blue-50',
+      color: 'from-primary to-secondary',
+      bgColor: 'bg-secondary/15',
     },
     {
       icon: Video,
       title: 'Live Online Classes',
       description: 'Interactive Zoom sessions with experienced educators',
-      color: 'from-purple-500 to-pink-500',
-      bgColor: 'bg-purple-50',
+      color: 'from-secondary to-primary',
+      bgColor: 'bg-secondary/10',
     },
     {
       icon: Users,
       title: 'Small Class Sizes',
       description: 'Personalized attention with limited students per class',
-      color: 'from-green-500 to-emerald-500',
-      bgColor: 'bg-green-50',
+      color: 'from-primary to-accent',
+      bgColor: 'bg-accent/10',
     },
     {
       icon: Star,
       title: 'Highly Rated Teachers',
       description: 'Learn from verified and top-rated educators',
-      color: 'from-yellow-500 to-orange-500',
-      bgColor: 'bg-yellow-50',
+      color: 'from-accent to-secondary',
+      bgColor: 'bg-accent/10',
     },
     {
       icon: Award,
       title: 'Quality Materials',
       description: 'Access comprehensive study resources and materials',
-      color: 'from-pink-500 to-rose-500',
-      bgColor: 'bg-pink-50',
+      color: 'from-secondary to-accent',
+      bgColor: 'bg-secondary/10',
     },
   ];
 
@@ -50,10 +50,10 @@ export function LandingPage() {
       <PublicNav />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-20">
+      <section className="bg-gradient-to-br from-background via-secondary/10 to-accent/10 py-20">
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-5xl mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-5xl mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Transform Your Learning Journey
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
@@ -61,13 +61,13 @@ export function LandingPage() {
             </p>
             <div className="flex gap-4 justify-center">
               <Link to="/register">
-                <Button size="lg" className="gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
+                <Button size="lg" variant="cta" className="gap-2">
                   <Users className="w-5 h-5" />
                   Register as Student
                 </Button>
               </Link>
               <Link to="/register?role=teacher">
-                <Button size="lg" variant="outline" className="gap-2 border-2 border-purple-200 hover:bg-purple-50">
+                <Button size="lg" variant="outline" className="gap-2 border-2 border-secondary/40 hover:bg-secondary/10">
                   <Award className="w-5 h-5" />
                   Become a Teacher
                 </Button>
@@ -119,7 +119,7 @@ export function LandingPage() {
               Join thousands of students already learning with TuitionHub
             </p>
             <Link to="/register">
-              <Button size="lg">Sign Up Now</Button>
+              <Button size="lg" variant="cta">Sign Up Now</Button>
             </Link>
           </div>
         </div>

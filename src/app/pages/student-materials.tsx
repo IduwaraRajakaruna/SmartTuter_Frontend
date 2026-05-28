@@ -27,13 +27,13 @@ export function StudentMaterialsPage() {
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'pdf':
-        return 'bg-red-500/10 text-red-700 border-red-200';
+        return 'bg-primary/10 text-primary border-primary/20';
       case 'video':
-        return 'bg-purple-500/10 text-purple-700 border-purple-200';
+        return 'bg-secondary/15 text-primary border-secondary/30';
       case 'link':
-        return 'bg-blue-500/10 text-blue-700 border-blue-200';
+        return 'bg-accent/15 text-accent border-accent/30';
       default:
-        return 'bg-gray-500/10 text-gray-700 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 

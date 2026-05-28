@@ -67,6 +67,7 @@ export function ClassCard({ classData, onEnroll, onViewDetails, showActions = tr
             View Details
           </Button>
           <Button
+            variant="cta"
             className="flex-1"
             onClick={() => onEnroll?.(classData.id)}
             disabled={classData.studentsEnrolled >= classData.maxStudents}

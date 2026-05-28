@@ -79,7 +79,7 @@ export function StudentDashboard() {
                 href={upcomingClass.zoomLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#2D8CFF] text-white hover:bg-[#1D78E6]"
               >
                 Join Zoom Class
               </a>
