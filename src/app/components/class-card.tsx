@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { Class } from '@/app/lib/mock-data';
-import { Calendar, Users, DollarSign } from 'lucide-react';
+import { Calendar, Users } from 'lucide-react';
 
 interface ClassCardProps {
   classData: Class;
@@ -52,7 +52,9 @@ export function ClassCard({ classData, onEnroll, onViewDetails, showActions = tr
             <span>{classData.studentsEnrolled} / {classData.maxStudents} students</span>
           </div>
           <div className="flex items-center text-sm">
-            <DollarSign className="w-4 h-4 mr-2 text-muted-foreground" />
+            <span className="mr-2 inline-flex h-4 w-4 items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted-foreground">
+              Rs
+            </span>
             <span className="font-semibold">{classData.price}</span>
           </div>
         </div>

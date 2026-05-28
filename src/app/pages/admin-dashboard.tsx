@@ -78,7 +78,7 @@ export function AdminDashboard() {
         />
         <StatCard
           title="Total Revenue"
-          value={`₹${totalRevenue.toLocaleString()}`}
+          value={`Rs ${totalRevenue.toLocaleString()}`}
           icon={CreditCard}
           description="This month"
           trend={{ value: 8, isPositive: true }}
@@ -190,7 +190,7 @@ export function AdminDashboard() {
                 <TableRow key={payment.id}>
                   <TableCell>{payment.studentName}</TableCell>
                   <TableCell>{payment.className}</TableCell>
-                  <TableCell>₹{payment.amount}</TableCell>
+                  <TableCell>Rs {payment.amount}</TableCell>
                   <TableCell className="capitalize">{payment.method}</TableCell>
                   <TableCell>{payment.date}</TableCell>
                   <TableCell>

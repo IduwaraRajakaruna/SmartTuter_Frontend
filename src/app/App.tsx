@@ -24,6 +24,8 @@ import { TeacherDashboard } from '@/app/pages/teacher-dashboard';
 import { ManageClasses } from '@/app/pages/teacher-manage-classes';
 import { CreateClass } from '@/app/pages/teacher-create-class';
 import { StudyMaterialsPage } from '@/app/pages/teacher-materials';
+import { TeacherFeedbackPage } from '@/app/pages/teacher-feedback';
+import { TeacherProfilePage } from '@/app/pages/teacher-profile';
 
 // Admin Pages
 import { AdminDashboard } from '@/app/pages/admin-dashboard';
@@ -162,10 +164,7 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['teacher']}>
             <DashboardLayout>
-              <div className="p-6">
-                <h1 className="text-3xl mb-4">Student Feedback</h1>
-                <p className="text-muted-foreground">View ratings and reviews from students</p>
-              </div>
+              <TeacherFeedbackPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -175,10 +174,7 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['teacher']}>
             <DashboardLayout>
-              <div className="p-6">
-                <h1 className="text-3xl mb-4">Teacher Profile</h1>
-                <p className="text-muted-foreground">Manage your professional profile</p>
-              </div>
+              <TeacherProfilePage />
             </DashboardLayout>
           </ProtectedRoute>
         }

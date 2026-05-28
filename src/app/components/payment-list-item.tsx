@@ -26,7 +26,7 @@ export function PaymentListItem({ payment }: PaymentListItemProps) {
         <p className="text-sm text-muted-foreground">{payment.date}</p>
       </div>
       <div className="text-right">
-        <p className="font-medium">₹{payment.amount}</p>
+        <p className="font-medium">Rs {payment.amount}</p>
         <Badge className={getStatusColor(payment.status)}>
           {payment.status}
         </Badge>
