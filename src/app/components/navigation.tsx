@@ -81,7 +81,8 @@ export function Navigation() {
           <span className="text-xl">TuitionHub</span>
         </Link>
 
-        <nav className="flex items-center gap-1 flex-1">
+        <nav className="flex items-center gap-1 justify-end flex-1">
+
           {navItems.map((item) => {
             const isActive = location.pathname === item.to;
             return (
@@ -98,38 +99,8 @@ export function Navigation() {
           })}
         </nav>
 
-        <div className="ml-auto">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-2">
-                <Avatar className="w-8 h-8">
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-                <span className="hidden md:inline">{user.name}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>
-                <div>
-                  <p>{user.name}</p>
-                  <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link to={`/${user.role}/profile`} className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={logout} className="flex items-center gap-2 text-red-600">
-                <LogOut className="w-4 h-4" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        {/* Right side user dropdown removed to hide the teacher/student/admin button */}
+        <div className="ml-auto" />
       </div>
     </div>
   );

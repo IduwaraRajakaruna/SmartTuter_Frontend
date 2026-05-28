@@ -17,7 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Mock login - in real app this would call an API
     const mockUser: User = {
       id: role === 'admin' ? 'admin1' : role === 'teacher' ? 't1' : 's1',
-      name: role === 'admin' ? 'Admin User' : role === 'teacher' ? 'Dr. Sarah Johnson' : 'John Smith',
+      name: role === 'admin' ? 'Admin User' : role === 'teacher' ? 'Teacher' : 'John Smith',
       email,
       role,
       status: 'active',
