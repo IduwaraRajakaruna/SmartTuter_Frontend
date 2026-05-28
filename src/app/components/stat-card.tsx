@@ -15,12 +15,12 @@ interface StatCardProps {
 
 export function StatCard({ title, value, icon: Icon, description, trend, color = 'blue' }: StatCardProps) {
   const colorClasses = {
-    blue: 'bg-blue-100 text-blue-600',
-    purple: 'bg-purple-100 text-purple-600',
-    green: 'bg-green-100 text-green-600',
-    orange: 'bg-orange-100 text-orange-600',
-    cyan: 'bg-cyan-100 text-cyan-600',
-    pink: 'bg-pink-100 text-pink-600',
+    blue: 'bg-primary/10 text-primary',
+    purple: 'bg-secondary/15 text-primary',
+    green: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300',
+    orange: 'bg-accent/15 text-accent',
+    cyan: 'bg-secondary/20 text-secondary-foreground',
+    pink: 'bg-accent/20 text-accent',
   };
 
   return (
@@ -34,7 +34,7 @@ export function StatCard({ title, value, icon: Icon, description, trend, color =
               <p className="text-xs text-muted-foreground mt-2">{description}</p>
             )}
             {trend && (
-              <p className={`text-xs mt-2 ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-xs mt-2 ${trend.isPositive ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
                 {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
               </p>
             )}

@@ -44,14 +44,14 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-accent/10 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
               <GraduationCap className="w-7 h-7 text-white" />
             </div>
-            <span className="text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">TuitionHub</span>
+            <span className="text-2xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">TuitionHub</span>
           </Link>
           <h1 className="text-3xl mb-2">Welcome Back</h1>
           <p className="text-muted-foreground">Sign in to your account</p>

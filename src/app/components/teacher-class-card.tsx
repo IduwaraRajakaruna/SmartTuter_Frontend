@@ -1,5 +1,6 @@
 import { Class } from '@/app/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 
 interface TeacherClassCardProps {
@@ -48,18 +49,20 @@ export function TeacherClassCard({ classData, onEdit, onStartSession }: TeacherC
             <span className="text-right">{classData.schedule}</span>
           </div>
           <div className="flex gap-2 pt-2">
-            <button 
-              className="flex-1 px-4 py-2 border rounded-md text-sm hover:bg-accent"
+            <Button
+              variant="outline"
+              className="flex-1"
               onClick={() => onEdit?.(classData.id)}
             >
               Edit Class
-            </button>
-            <button 
-              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90"
+            </Button>
+            <Button
+              variant="cta"
+              className="flex-1"
               onClick={() => onStartSession?.(classData.id)}
             >
               Start Session
-            </button>
+            </Button>
           </div>
         </div>
       </CardContent>

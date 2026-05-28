@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/app/context/auth-context';
+import { ThemeProvider } from '@/app/providers/theme-provider';
 import { Toaster } from '@/app/components/ui/sonner';
 import { DashboardLayout } from '@/app/layouts/dashboard-layout';
 
@@ -13,6 +14,10 @@ import { ViewTeachersPage } from '@/app/pages/view-teachers';
 // Student Pages
 import { StudentDashboard } from '@/app/pages/student-dashboard';
 import { StudentMaterialsPage } from '@/app/pages/student-materials';
+import { StudentClassesPage } from '@/app/pages/student-classes';
+import { StudentPaymentsPage } from '@/app/pages/student-payments';
+import { StudentReviewsPage } from '@/app/pages/student-reviews';
+import { StudentProfilePage } from '@/app/pages/student-profile';
 
 // Teacher Pages
 import { TeacherDashboard } from '@/app/pages/teacher-dashboard';
@@ -65,10 +70,7 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['student']}>
             <DashboardLayout>
-              <div className="p-6">
-                <h1 className="text-3xl mb-4">My Classes</h1>
-                <p className="text-muted-foreground">View and manage your enrolled classes</p>
-              </div>
+              <StudentClassesPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -88,10 +90,7 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['student']}>
             <DashboardLayout>
-              <div className="p-6">
-                <h1 className="text-3xl mb-4">Payment History</h1>
-                <p className="text-muted-foreground">View your payment transactions</p>
-              </div>
+              <StudentPaymentsPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -101,10 +100,7 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['student']}>
             <DashboardLayout>
-              <div className="p-6">
-                <h1 className="text-3xl mb-4">My Reviews</h1>
-                <p className="text-muted-foreground">Rate and review your teachers</p>
-              </div>
+              <StudentReviewsPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -114,10 +110,7 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['student']}>
             <DashboardLayout>
-              <div className="p-6">
-                <h1 className="text-3xl mb-4">My Profile</h1>
-                <p className="text-muted-foreground">Manage your account settings</p>
-              </div>
+              <StudentProfilePage />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -263,11 +256,13 @@ function AppRouter() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRouter />
-        <Toaster />
-      </AuthProvider>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRouter />
+          <Toaster />
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }

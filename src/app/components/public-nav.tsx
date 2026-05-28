@@ -21,7 +21,7 @@ export function PublicNav() {
             <Button variant="outline">Login</Button>
           </Link>
           <Link to="/register">
-            <Button>Get Started</Button>
+            <Button variant="cta">Get Started</Button>
           </Link>
         </div>
       </div>
