@@ -4,6 +4,7 @@ import { User } from '@/app/lib/mock-data';
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string, role: 'student' | 'teacher' | 'admin') => void;
+  setSession: (sessionUser: User) => void;
   logout: () => void;
   isAuthenticated: boolean;
   isInitialized: boolean;
@@ -52,13 +53,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mockUser));
   };
 
+  const setSession = (sessionUser: User) => {
+    setUser(sessionUser);
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(sessionUser));
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem(AUTH_STORAGE_KEY);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, isInitialized }}>
+    <AuthContext.Provider
+      value={{ user, login, setSession, logout, isAuthenticated: !!user, isInitialized }}
+    >
       {children}
     </AuthContext.Provider>
   );
