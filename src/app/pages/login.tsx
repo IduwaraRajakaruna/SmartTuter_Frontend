@@ -1,43 +1,86 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/app/components/ui/button';
-import { FormField } from '@/app/components/form-field';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
-import { Alert, AlertDescription } from '@/app/components/ui/alert';
-import { GraduationCap } from 'lucide-react';
-import { useAuth } from '@/app/context/auth-context';
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/app/components/ui/button";
+import { FormField } from "@/app/components/form-field";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/app/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/app/components/ui/tabs";
+import { Alert, AlertDescription } from "@/app/components/ui/alert";
+import { GraduationCap } from "lucide-react";
+import { useAuth } from "@/app/context/auth-context";
+import axios from "axios";
+import { User } from "@/app/lib/mock-data";
 
 export function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'student' | 'teacher' | 'admin'>('student');
-  const [error, setError] = useState('');
+  const [role, setRole] = useState<"student" | "teacher" | "admin">("student");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { setSession } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
-    if (!email || !password) {
-      setError('Please fill in all fields');
-      setLoading(false);
-      return;
-    }
-
     try {
-      // Use mock login from context
-      login(email, password, role);
-      
-      // Redirect to role dashboard
-      setTimeout(() => {
-        navigate(`/${role}/dashboard`);
-      }, 500);
-    } catch (err: any) {
-      setError('Login failed. Please try again.');
+      const response = await axios.post(
+        "http://localhost:8000/api/auth/login",
+        formData,
+      );
+      const responseUser = response.data?.user;
+      const token = response.data?.token;
+
+      if (!responseUser || !token) {
+        setError("Login failed. Missing user details.");
+        return;
+      }
+
+      if (responseUser.role !== role) {
+        setError(`Please select the ${responseUser.role} role to continue.`);
+        return;
+      }
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(responseUser));
+
+      const normalizedUser: User = {
+        id: responseUser.id,
+        name: responseUser.fullName || responseUser.name || responseUser.email,
+        email: responseUser.email,
+        role: responseUser.role,
+        status: responseUser.status || "active",
+        joinedDate: responseUser.joinedDate || new Date().toISOString(),
+      };
+
+      setSession(normalizedUser);
+
+      if (responseUser.role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (responseUser.role === "teacher") {
+        navigate("/teacher/dashboard");
+      } else {
+        navigate("/student/dashboard");
+      }
+    } catch (error) {
+      console.error(error);
+      setError("Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }
@@ -51,7 +94,9 @@ export function LoginPage() {
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
               <GraduationCap className="w-7 h-7 text-white" />
             </div>
-            <span className="text-2xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">TuitionHub</span>
+            <span className="text-2xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              TuitionHub
+            </span>
           </Link>
           <h1 className="text-3xl mb-2">Welcome Back</h1>
           <p className="text-muted-foreground">Sign in to your account</p>
@@ -60,10 +105,16 @@ export function LoginPage() {
         <Card className="border-none shadow-xl">
           <CardHeader>
             <CardTitle>Login</CardTitle>
-            <CardDescription>Select your role and enter your credentials</CardDescription>
+            <CardDescription>
+              Select your role and enter your credentials
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs value={role} onValueChange={(v) => setRole(v as any)} className="mb-6">
+            <Tabs
+              value={role}
+              onValueChange={(v) => setRole(v as any)}
+              className="mb-6"
+            >
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="student">Student</TabsTrigger>
                 <TabsTrigger value="teacher">Teacher</TabsTrigger>
@@ -71,22 +122,23 @@ export function LoginPage() {
               </TabsList>
             </Tabs>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
               <FormField
                 id="email"
                 label="Email"
                 type="email"
                 placeholder="Enter your email"
-                value={email}
-                onChange={setEmail}
+                value={formData.email}
+                onChange={(email) => setFormData({ ...formData, email })}
               />
+
               <FormField
                 id="password"
                 label="Password"
                 type="password"
                 placeholder="Enter your password"
-                value={password}
-                onChange={setPassword}
+                value={formData.password}
+                onChange={(password) => setFormData({ ...formData, password })}
               />
 
               {error && (
@@ -96,13 +148,13 @@ export function LoginPage() {
               )}
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Signing In...' : 'Sign In'}
+                {loading ? "Signing In..." : "Sign In"}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <div className="text-sm text-center">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <Link to="/register" className="text-primary hover:underline">
                 Register here
               </Link>
