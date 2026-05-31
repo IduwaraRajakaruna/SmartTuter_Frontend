@@ -1,34 +1,52 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { TeacherFeedbackFilters } from '@/app/components/teacher-feedback/teacher-feedback-filters';
 import { TeacherFeedbackList } from '@/app/components/teacher-feedback/teacher-feedback-list';
 import { TeacherFeedbackSummary } from '@/app/components/teacher-feedback/teacher-feedback-summary';
 import { useAuth } from '@/app/context/auth-context';
-import { mockClasses, mockReviews } from '@/app/lib/mock-data';
+import { mockClasses } from '@/app/lib/mock-data';
+import { getStoredClasses } from '@/app/lib/classes-storage';
+import { listTeacherReviews, type ReviewRecord } from '@/services/reviewsService';
+import { toast } from 'sonner';
 
 export function TeacherFeedbackPage() {
   const { user } = useAuth();
   const teacherId = user?.id ?? 't1';
   const [searchTerm, setSearchTerm] = useState('');
   const [ratingFilter, setRatingFilter] = useState('all');
+  const [reviews, setReviews] = useState<ReviewRecord[]>([]);
+  const [averageRating, setAverageRating] = useState('0.0');
+  const [totalReviews, setTotalReviews] = useState(0);
 
   const teacherClasses = useMemo(() => {
-    return mockClasses.filter(classData => classData.teacherId === teacherId);
+    const storedClasses = getStoredClasses();
+    const availableClasses = storedClasses.length > 0 ? storedClasses : mockClasses;
+    return availableClasses.filter(classData => classData.teacherId === teacherId);
   }, [teacherId]);
 
-  const reviews = useMemo(() => {
-    const baseReviews = mockReviews.filter(review => review.teacherId === teacherId);
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        const response = await listTeacherReviews(teacherId);
+        setReviews(response.reviews);
+        setAverageRating((response.summary.averageRating ?? 0).toFixed(1));
+        setTotalReviews(response.summary.totalReviews);
+      } catch (error) {
+        console.error(error);
+        toast.error('Unable to load student feedback');
+      }
+    };
 
-    return baseReviews.filter(review => {
+    loadReviews();
+  }, []);
+
+  const filteredReviews = useMemo(() => {
+    return reviews.filter(review => {
       const matchesSearch = review.studentName.toLowerCase().includes(searchTerm.toLowerCase())
         || review.comment.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRating = ratingFilter === 'all' || review.rating === Number(ratingFilter);
       return matchesSearch && matchesRating;
     });
-  }, [teacherId, searchTerm, ratingFilter]);
-
-  const averageRating = reviews.length > 0
-    ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
-    : '0.0';
+  }, [reviews, searchTerm, ratingFilter]);
 
   const totalStudents = teacherClasses.reduce((sum, classData) => sum + classData.studentsEnrolled, 0);
 
@@ -41,7 +59,7 @@ export function TeacherFeedbackPage() {
 
       <TeacherFeedbackSummary
         averageRating={averageRating}
-        totalReviews={reviews.length}
+        totalReviews={totalReviews}
         totalStudents={totalStudents}
       />
 
@@ -52,7 +70,7 @@ export function TeacherFeedbackPage() {
         onRatingChange={setRatingFilter}
       />
 
-      <TeacherFeedbackList reviews={reviews} />
+      <TeacherFeedbackList reviews={filteredReviews} />
     </div>
   );
 }

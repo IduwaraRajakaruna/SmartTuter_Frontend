@@ -4,7 +4,7 @@ import { StatCard } from '@/app/components/stat-card';
 import { TeacherApprovalDialog } from '@/app/components/teacher-approval-dialog';
 import { StudentThemeToggle } from '@/app/components/student-profile/student-theme-toggle';
 import { Users, GraduationCap, CreditCard, FileText, TrendingUp, AlertCircle } from 'lucide-react';
-import { mockStudents, mockPayments, mockClasses } from '@/app/lib/mock-data';
+import { mockStudents, mockClasses } from '@/app/lib/mock-data';
 import { TeacherApproval } from '@/app/lib/teacher-approvals';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
@@ -20,6 +20,7 @@ import {
 import { toast } from 'sonner';
 import axios from 'axios';
 import { LoadingSpinner } from '@/app/components/ui/loading-spinner';
+import { getStoredPayments, seedPayments } from '@/app/lib/payments-storage';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -54,10 +55,17 @@ export function AdminDashboard() {
   }, []);
 
   const pendingTeachers = teachers.filter(t => t.status === 'pending');
-  const totalRevenue = mockPayments
+  seedPayments();
+  const allPayments = getStoredPayments();
+
+  const totalRevenue = allPayments
     .filter(p => p.status === 'completed')
     .reduce((sum, p) => sum + p.amount, 0);
-  const pendingPayments = mockPayments.filter(p => p.status === 'pending');
+  const recentTransactions = [...allPayments]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 5);
+
+  const pendingPayments = allPayments.filter(p => p.status === 'pending');
 
   const handleApprovalAction = (teacher: TeacherApproval, action: 'approve' | 'reject') => {
     setSelectedTeacher(teacher);
@@ -244,7 +252,7 @@ export function AdminDashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockPayments.slice(0, 5).map((payment) => (
+              {recentTransactions.map((payment) => (
                 <TableRow key={payment.id}>
                   <TableCell>{payment.studentName}</TableCell>
                   <TableCell>{payment.className}</TableCell>

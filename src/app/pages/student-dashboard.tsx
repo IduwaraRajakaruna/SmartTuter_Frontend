@@ -1,18 +1,51 @@
+import { useEffect, useState } from 'react';
 import { StatCard } from '@/app/components/stat-card';
-import { ClassCard } from '@/app/components/class-card';
 import { PaymentListItem } from '@/app/components/payment-list-item';
 import { BookOpen, Calendar, CreditCard, Star } from 'lucide-react';
-import { mockClasses, mockPayments } from '@/app/lib/mock-data';
+import { mockClasses } from '@/app/lib/mock-data';
+import { getStoredClasses } from '@/app/lib/classes-storage';
+import { seedPayments, getStoredPayments } from '@/app/lib/payments-storage';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import { useAuth } from '@/app/context/auth-context';
+import { listMyReviews } from '@/services/reviewsService';
+import type { Class, Payment } from '@/app/lib/mock-data';
 
 export function StudentDashboard() {
   const { user } = useAuth();
-  // Mock student's enrolled classes
-  const enrolledClasses = mockClasses.filter((_, i) => i < 2);
-  const upcomingClass = enrolledClasses[0];
-  const completedPayments = mockPayments.filter(p => p.status === 'completed');
+  const studentId = user?.id ?? 's1';
+  const [reviewsGiven, setReviewsGiven] = useState(0);
+  const availableClasses = getStoredClasses();
+  const classCatalog = availableClasses.length > 0 ? availableClasses : mockClasses;
+
+  seedPayments();
+  const allPayments: Payment[] = getStoredPayments();
+  const enrolledClassIds = allPayments
+    .filter((payment: Payment) => payment.studentId === studentId && payment.status === 'completed')
+    .map((payment: Payment) => payment.classId);
+
+  const enrolledClasses = classCatalog.filter((classData: Class) => enrolledClassIds.includes(classData.id));
+
+  // find the next upcoming/active class by startDate
+  const upcomingCandidates = enrolledClasses.filter((classData: Class) => classData.status === 'upcoming' || classData.status === 'active');
+  const upcomingClass = upcomingCandidates.sort((a: Class, b: Class) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())[0];
+
+  const completedPayments = allPayments.filter((payment: Payment) => payment.studentId === studentId && payment.status === 'completed');
+  const upcomingClassCount = upcomingClass ? 1 : 0;
+  const paymentSummary = completedPayments.length > 0 ? 'Paid' : 'No payments yet';
+
+  useEffect(() => {
+    const loadReviewCount = async () => {
+      try {
+        const response = await listMyReviews();
+        setReviewsGiven(response.summary.totalReviews || response.reviews.length);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    loadReviewCount();
+  }, []);
 
   return (
     <div className="p-6 space-y-6">
@@ -32,21 +65,21 @@ export function StudentDashboard() {
         />
         <StatCard
           title="Upcoming Classes"
-          value={1}
+          value={upcomingClassCount}
           icon={Calendar}
           description="This week"
           color="purple"
         />
         <StatCard
           title="Payment Status"
-          value="Paid"
+          value={paymentSummary}
           icon={CreditCard}
-          description="All dues cleared"
+          description={completedPayments.length > 0 ? 'All dues cleared' : 'No completed payments yet'}
           color="green"
         />
         <StatCard
           title="Reviews Given"
-          value={3}
+          value={reviewsGiven}
           icon={Star}
           description="Thank you!"
           color="orange"
@@ -90,19 +123,7 @@ export function StudentDashboard() {
         </Card>
       )}
 
-      {/* Enrolled Classes */}
-      <div>
-        <h2 className="text-2xl mb-4">My Classes</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {enrolledClasses.map((classData) => (
-            <ClassCard
-              key={classData.id}
-              classData={classData}
-              showActions={false}
-            />
-          ))}
-        </div>
-      </div>
+      {/* Removed My Classes section — classes are available on My Classes page */}
 
       {/* Recent Payments */}
       <Card>
@@ -111,9 +132,13 @@ export function StudentDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {completedPayments.slice(0, 3).map((payment) => (
-              <PaymentListItem key={payment.id} payment={payment} />
-            ))}
+            {completedPayments.length > 0 ? (
+              completedPayments.slice(0, 3).map((payment: Payment) => (
+                <PaymentListItem key={payment.id} payment={payment} />
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No payments yet for this student.</p>
+            )}
           </div>
         </CardContent>
       </Card>

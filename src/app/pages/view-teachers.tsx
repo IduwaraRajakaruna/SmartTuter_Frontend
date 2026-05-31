@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import axios from 'axios';
 import { TeacherCard } from '@/app/components/teacher-card';
 import { PublicNav } from '@/app/components/public-nav';
@@ -79,7 +79,7 @@ export function ViewTeachersPage() {
             <Input
               placeholder="Search teachers by name or subject..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -96,8 +96,8 @@ export function ViewTeachersPage() {
           {filteredTeachers.map((teacher) => (
             <TeacherCard
               key={teacher.id}
-              teacher={teacher as any}
-              onViewProfile={(id) => {
+              teacher={teacher}
+              onViewProfile={(id: string) => {
                 window.location.href = `/teachers/${id}`;
               }}
             />

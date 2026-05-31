@@ -4,7 +4,9 @@ import { StudentProfileHeader } from '@/app/components/student-profile/student-p
 import { StudentProfileSummary } from '@/app/components/student-profile/student-profile-summary';
 import { StudentThemeToggle } from '@/app/components/student-profile/student-theme-toggle';
 import { useAuth } from '@/app/context/auth-context';
-import { mockClasses, mockPayments } from '@/app/lib/mock-data';
+import { mockClasses } from '@/app/lib/mock-data';
+import { getStoredClasses } from '@/app/lib/classes-storage';
+import { seedPayments, getStoredPayments } from '@/app/lib/payments-storage';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/card';
 import { toast } from 'sonner';
@@ -24,15 +26,19 @@ export function StudentProfilePage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const studentId = user?.id ?? 's1';
+  const classCatalog = getStoredClasses();
+  const availableClasses = classCatalog.length > 0 ? classCatalog : mockClasses;
 
-  const enrolledClasses = mockPayments.filter(payment => payment.studentId === studentId)
+  seedPayments();
+  const enrolledClasses = getStoredPayments().filter(payment => payment.studentId === studentId)
     .map(payment => payment.classId);
   const uniqueClasses = Array.from(new Set(enrolledClasses));
-  const upcomingClasses = mockClasses.filter(
-    classData => uniqueClasses.includes(classData.id) && classData.status === 'upcoming',
-  ).length;
-  const pendingPayments = mockPayments.filter(
+  const pendingPayments = getStoredPayments().filter(
     payment => payment.studentId === studentId && payment.status === 'pending',
+  ).length;
+
+  const upcomingClasses = availableClasses.filter(
+    classData => uniqueClasses.includes(classData.id) && classData.status === 'upcoming',
   ).length;
 
   useEffect(() => {

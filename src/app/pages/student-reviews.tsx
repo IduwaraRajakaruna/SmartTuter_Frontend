@@ -1,53 +1,66 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StudentReviewsTabs } from '@/app/components/student-reviews/student-reviews-tabs';
 import { useAuth } from '@/app/context/auth-context';
-import { mockClasses, mockPayments, mockReviews, mockTeachers } from '@/app/lib/mock-data';
+import { mockClasses, mockTeachers } from '@/app/lib/mock-data';
+import { getStoredClasses } from '@/app/lib/classes-storage';
+import { seedPayments, getStoredPayments } from '@/app/lib/payments-storage';
 import { toast } from 'sonner';
+import { createReview, listMyReviews, type ReviewRecord } from '@/services/reviewsService';
+
+type StudentReviewItem = ReviewRecord;
 
 export function StudentReviewsPage() {
   const { user } = useAuth();
   const studentId = user?.id ?? 's1';
+  const [reviews, setReviews] = useState<StudentReviewItem[]>([]);
 
   const teacherOptions = useMemo(() => {
-    const enrolledClassIds = mockPayments
-      .filter(payment => payment.studentId === studentId)
+    seedPayments();
+    const classCatalog = getStoredClasses();
+    const availableClasses = classCatalog.length > 0 ? classCatalog : mockClasses;
+    const enrolledClassIds = getStoredPayments()
+      .filter(payment => payment.studentId === studentId && payment.status === 'completed')
       .map(payment => payment.classId);
 
     const teacherIds = new Set(
-      mockClasses
+      availableClasses
         .filter(classData => enrolledClassIds.includes(classData.id))
         .map(classData => classData.teacherId),
     );
 
-    return mockTeachers
-      .filter(teacher => teacherIds.has(teacher.id))
-      .map(teacher => ({ id: teacher.id, name: teacher.name }));
+    return availableClasses
+      .filter(classData => enrolledClassIds.includes(classData.id) && teacherIds.has(classData.teacherId))
+      .map(classData => ({
+        id: classData.teacherId,
+        name: mockTeachers.find(teacher => teacher.id === classData.teacherId)?.name ?? classData.teacherName,
+        classId: classData.id,
+        className: classData.title,
+      }));
   }, [studentId]);
 
-  const [reviews, setReviews] = useState(() => {
-    return mockReviews
-      .filter(review => review.studentId === studentId)
-      .map(review => ({
-        id: review.id,
-        teacherName: mockTeachers.find(t => t.id === review.teacherId)?.name ?? 'Teacher',
-        rating: review.rating,
-        comment: review.comment,
-        date: review.date,
-      }));
-  });
-
-  const handleSubmitReview = (payload: { teacherId: string; rating: number; comment: string }) => {
-    const teacherName = mockTeachers.find(t => t.id === payload.teacherId)?.name ?? 'Teacher';
-    const newReview = {
-      id: `review-${Date.now()}`,
-      teacherName,
-      rating: payload.rating,
-      comment: payload.comment,
-      date: new Date().toISOString().split('T')[0],
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        const response = await listMyReviews();
+        setReviews(response.reviews);
+      } catch (error) {
+        console.error(error);
+        toast.error('Unable to load your reviews');
+      }
     };
 
-    setReviews(prev => [newReview, ...prev]);
-    toast.success('Review submitted successfully!');
+    loadReviews();
+  }, []);
+
+  const handleSubmitReview = async (payload: { teacherId: string; classId: string; className: string; rating: number; comment: string }) => {
+    try {
+      const created = await createReview(payload);
+      setReviews(prev => [created, ...prev.filter(review => review.id !== created.id)]);
+      toast.success('Review submitted successfully!');
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error?.message || 'Unable to submit review');
+    }
   };
 
   return (

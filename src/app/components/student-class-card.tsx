@@ -32,7 +32,7 @@ export function StudentClassCard({
     ? 'bg-yellow-500/10 text-yellow-700 border-yellow-200'
     : 'bg-red-500/10 text-red-700 border-red-200';
 
-  const canJoin = classData.status === 'active' && paymentStatus === 'completed';
+  const canJoin = paymentStatus === 'completed' && Boolean(classData.zoomLink);
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -68,15 +68,24 @@ export function StudentClassCard({
         </div>
       </CardContent>
       <CardFooter className="flex flex-wrap gap-2">
-        <Button
-          variant="cta"
-          className={cn('gap-2 bg-[#2D8CFF] text-white hover:bg-[#1D78E6]', !canJoin && 'opacity-60')}
-          disabled={!canJoin}
-          onClick={() => onJoinClass?.(classData.id)}
-        >
-          <Video className="w-4 h-4" />
-          Join class
-        </Button>
+        {canJoin ? (
+          <Button asChild variant="cta" className="gap-2 bg-[#2D8CFF] text-white hover:bg-[#1D78E6]">
+            <a href={classData.zoomLink} target="_blank" rel="noreferrer">
+              <Video className="w-4 h-4" />
+              Join class
+            </a>
+          </Button>
+        ) : (
+          <Button
+            variant="cta"
+            className={cn('gap-2 bg-[#2D8CFF] text-white hover:bg-[#1D78E6]', 'opacity-60')}
+            disabled
+            onClick={() => onJoinClass?.(classData.id)}
+          >
+            <Video className="w-4 h-4" />
+            Join class
+          </Button>
+        )}
         <Button
           variant="outline"
           onClick={() => onViewMaterials?.(classData.id)}

@@ -4,12 +4,13 @@ import { TeacherProfileHeader } from '@/app/components/teacher-profile/teacher-p
 import { TeacherProfileSummary } from '@/app/components/teacher-profile/teacher-profile-summary';
 import { StudentThemeToggle } from '@/app/components/student-profile/student-theme-toggle';
 import { useAuth } from '@/app/context/auth-context';
-import { mockClasses, mockReviews, mockTeachers } from '@/app/lib/mock-data';
+import { mockClasses, mockTeachers } from '@/app/lib/mock-data';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/card';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { LoadingSpinner } from '@/app/components/ui/loading-spinner';
+import { listTeacherReviews } from '@/services/reviewsService';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -28,15 +29,12 @@ export function TeacherProfilePage() {
   });
   const [profileStatus, setProfileStatus] = useState(user?.status ?? teacher?.status);
   const [isLoading, setIsLoading] = useState(true);
+  const [averageRating, setAverageRating] = useState('0.0');
 
   const teacherClasses = mockClasses.filter(classData => classData.teacherId === teacherId);
   const activeClasses = teacherClasses.filter(classData => classData.status === 'active').length;
   const upcomingClasses = teacherClasses.filter(classData => classData.status === 'upcoming').length;
   const totalStudents = teacherClasses.reduce((sum, classData) => sum + classData.studentsEnrolled, 0);
-  const teacherReviews = mockReviews.filter(review => review.teacherId === teacherId);
-  const averageRating = teacherReviews.length > 0
-    ? (teacherReviews.reduce((sum, review) => sum + review.rating, 0) / teacherReviews.length).toFixed(1)
-    : '0.0';
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -87,6 +85,19 @@ export function TeacherProfilePage() {
     };
 
     loadProfile();
+  }, []);
+
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        const response = await listTeacherReviews(teacherId);
+        setAverageRating((response.summary.averageRating ?? 0).toFixed(1));
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    loadReviews();
   }, []);
 
   const handleSave = async (payload: {

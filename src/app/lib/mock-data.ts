@@ -71,6 +71,9 @@ export interface Review {
   teacherId: string;
   studentId: string;
   studentName: string;
+  teacherName?: string;
+  classId?: string;
+  className?: string;
   rating: number;
   comment: string;
   date: string;

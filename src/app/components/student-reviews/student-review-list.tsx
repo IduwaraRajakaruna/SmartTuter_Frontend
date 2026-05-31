@@ -5,6 +5,7 @@ import { Star } from 'lucide-react';
 interface StudentReviewListItem {
   id: string;
   teacherName: string;
+  className?: string;
   rating: number;
   comment: string;
   date: string;
@@ -30,6 +31,7 @@ export function StudentReviewList({ reviews }: StudentReviewListProps) {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="font-medium">{review.teacherName}</p>
+                {review.className && <p className="text-xs text-muted-foreground">{review.className}</p>}
                 <p className="text-xs text-muted-foreground">{review.date}</p>
               </div>
               <div className="flex items-center gap-1 text-sm">

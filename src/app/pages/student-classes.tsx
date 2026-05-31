@@ -4,7 +4,9 @@ import { StudentClassesFilters } from '@/app/components/student-classes/student-
 import { StudentClassesList } from '@/app/components/student-classes/student-classes-list';
 import { StudentClassesStats } from '@/app/components/student-classes/student-classes-stats';
 import { useAuth } from '@/app/context/auth-context';
-import { mockClasses, mockPayments } from '@/app/lib/mock-data';
+import { mockClasses } from '@/app/lib/mock-data';
+import { getStoredClasses } from '@/app/lib/classes-storage';
+import { getStoredPayments, seedPayments } from '@/app/lib/payments-storage';
 import { toast } from 'sonner';
 
 const statusFilters = ['all', 'active', 'upcoming', 'completed'] as const;
@@ -15,19 +17,27 @@ export function StudentClassesPage() {
   const [subjectFilter, setSubjectFilter] = useState('all');
   const navigate = useNavigate();
   const { user } = useAuth();
+  const availableClasses = useMemo(() => {
+    const storedClasses = getStoredClasses();
+    return storedClasses.length > 0 ? storedClasses : mockClasses;
+  }, []);
 
   const studentId = user?.id ?? 's1';
   const enrolledClassIds = useMemo(() => {
-    const ids = mockPayments
-      .filter(payment => payment.studentId === studentId)
+    // ensure payments storage is seeded
+    seedPayments();
+
+    const payments = getStoredPayments();
+    const ids = payments
+      .filter(payment => payment.studentId === studentId && payment.status === 'completed')
       .map(payment => payment.classId);
 
     return ids.length > 0 ? Array.from(new Set(ids)) : ['c1', 'c2'];
   }, [studentId]);
 
   const enrolledClasses = useMemo(() => {
-    return mockClasses.filter(classData => enrolledClassIds.includes(classData.id));
-  }, [enrolledClassIds]);
+    return availableClasses.filter(classData => enrolledClassIds.includes(classData.id));
+  }, [availableClasses, enrolledClassIds]);
 
   const subjects = useMemo(() => {
     return ['all', ...new Set(enrolledClasses.map(classData => classData.subject))];
@@ -45,7 +55,7 @@ export function StudentClassesPage() {
   });
 
   const getPaymentStatus = (classId: string) => {
-    const payment = mockPayments.find(p => p.studentId === studentId && p.classId === classId);
+    const payment = getStoredPayments().find(p => p.studentId === studentId && p.classId === classId);
     return payment?.status ?? 'pending';
   };
 
