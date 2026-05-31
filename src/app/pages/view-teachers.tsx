@@ -1,24 +1,65 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import axios from 'axios';
 import { TeacherCard } from '@/app/components/teacher-card';
 import { PublicNav } from '@/app/components/public-nav';
 import { EmptyState } from '@/app/components/empty-state';
-import { mockTeachers } from '@/app/lib/mock-data';
 import { Input } from '@/app/components/ui/input';
 import { Search } from 'lucide-react';
 
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8000';
+
+
+type TeacherPublic = {
+  id: string;
+  name: string;
+  subject: string;
+  qualification: string;
+  experience?: number;
+  bio?: string;
+  status?: string;
+  hourlyRate?: number;
+  zoomLink?: string;
+  // UI-only fields (backend may not provide rating)
+  rating?: number;
+  totalReviews?: number;
+};
+
 export function ViewTeachersPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [teachers, setTeachers] = useState<TeacherPublic[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Only show active teachers to public
-  const activeTeachers = mockTeachers.filter(t => t.status === 'active');
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get(`${API_BASE_URL}/api/teachers/active`);
+        const data = response.data?.teachers ?? response.data?.activeTeachers ?? [];
+        setTeachers(data);
+      } catch (e) {
+        console.error(e);
+        setTeachers([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    load();
+  }, []);
 
-  const filteredTeachers = activeTeachers.filter(teacher => {
-    const matchesSearch = teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.qualification.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredTeachers = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return teachers;
 
-    return matchesSearch;
-  });
+    return teachers.filter((teacher) => {
+      const matchesSearch =
+        (teacher.name || '').toLowerCase().includes(term) ||
+        (teacher.subject || '').toLowerCase().includes(term) ||
+        (teacher.qualification || '').toLowerCase().includes(term);
+
+      return matchesSearch;
+    });
+  }, [teachers, searchTerm]);
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -55,8 +96,10 @@ export function ViewTeachersPage() {
           {filteredTeachers.map((teacher) => (
             <TeacherCard
               key={teacher.id}
-              teacher={teacher}
-              onViewProfile={() => {}}
+              teacher={teacher as any}
+              onViewProfile={(id) => {
+                window.location.href = `/teachers/${id}`;
+              }}
             />
           ))}
         </div>

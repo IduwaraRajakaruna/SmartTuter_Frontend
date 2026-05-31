@@ -4,6 +4,7 @@ import { PublicNav } from '@/app/components/public-nav';
 import { EmptyState } from '@/app/components/empty-state';
 import { EnrollmentDialog } from '@/app/components/enrollment-dialog';
 import { mockClasses, Class } from '@/app/lib/mock-data';
+import { getStoredClasses } from '@/app/lib/classes-storage';
 import { Input } from '@/app/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { Search } from 'lucide-react';
@@ -15,9 +16,12 @@ export function ViewClassesPage() {
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
 
-  const subjects = ['all', ...new Set(mockClasses.map(c => c.subject))];
+  const storedClasses = getStoredClasses();
+  const allClasses = storedClasses.length > 0 ? storedClasses : mockClasses;
 
-  const filteredClasses = mockClasses.filter(classData => {
+  const subjects = ['all', ...new Set(allClasses.map(c => c.subject))];
+
+  const filteredClasses = allClasses.filter(classData => {
     const matchesSearch = classData.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       classData.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
       classData.teacherName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -28,7 +32,7 @@ export function ViewClassesPage() {
   });
 
   const handleEnroll = (classId: string) => {
-    const classData = mockClasses.find(c => c.id === classId);
+    const classData = allClasses.find(c => c.id === classId);
     if (classData) {
       setSelectedClass(classData);
       setIsEnrollDialogOpen(true);

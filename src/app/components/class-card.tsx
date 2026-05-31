@@ -2,6 +2,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { Class } from '@/app/lib/mock-data';
+
+// NOTE: using mock-data types here; card supports real classData fields at runtime.
+
 import { Calendar, Users } from 'lucide-react';
 
 interface ClassCardProps {
@@ -61,13 +64,7 @@ export function ClassCard({ classData, onEnroll, onViewDetails, showActions = tr
       </CardContent>
       {showActions && (
         <CardFooter className="flex gap-2">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => onViewDetails?.(classData.id)}
-          >
-            View Details
-          </Button>
+
           <Button
             variant="cta"
             className="flex-1"
