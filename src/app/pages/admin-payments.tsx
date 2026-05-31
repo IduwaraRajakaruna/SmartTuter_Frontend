@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { CreditCard, TrendingUp, AlertTriangle, Search } from 'lucide-react';
 import { StatCard } from '@/app/components/stat-card';
-import { mockPayments } from '@/app/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
@@ -15,21 +14,25 @@ import {
   TableHeader,
   TableRow,
 } from '@/app/components/ui/table';
+import { getStoredPayments, seedPayments } from '@/app/lib/payments-storage';
 
 export function AdminPaymentsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'failed'>('all');
 
-  const totalRevenue = mockPayments
+  seedPayments();
+  const allPayments = getStoredPayments();
+
+  const totalRevenue = allPayments
     .filter(p => p.status === 'completed')
     .reduce((sum, p) => sum + p.amount, 0);
-  const pendingPayments = mockPayments.filter(p => p.status === 'pending');
-  const failedPayments = mockPayments.filter(p => p.status === 'failed');
+  const pendingPayments = allPayments.filter(p => p.status === 'pending');
+  const failedPayments = allPayments.filter(p => p.status === 'failed');
 
   const filteredPayments = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
 
-    return mockPayments.filter(payment => {
+    return allPayments.filter(payment => {
       const matchesTerm =
         !term ||
         payment.studentName.toLowerCase().includes(term) ||
@@ -40,7 +43,7 @@ export function AdminPaymentsPage() {
 
       return matchesTerm && matchesStatus;
     });
-  }, [searchTerm, statusFilter]);
+  }, [allPayments, searchTerm, statusFilter]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -86,7 +89,7 @@ export function AdminPaymentsPage() {
         />
         <StatCard
           title="All Transactions"
-          value={mockPayments.length}
+          value={allPayments.length}
           icon={CreditCard}
           description="Total records"
           color="blue"

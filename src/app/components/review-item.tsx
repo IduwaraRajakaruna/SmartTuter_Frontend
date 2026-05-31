@@ -22,6 +22,7 @@ export function ReviewItem({ review }: ReviewItemProps) {
             <span className="text-sm font-medium">{review.rating}</span>
           </div>
         </div>
+        {review.className && <p className="text-xs text-muted-foreground mb-1">{review.className}</p>}
         <p className="text-sm text-muted-foreground">{review.comment}</p>
         <p className="text-xs text-muted-foreground mt-1">{review.date}</p>
       </div>

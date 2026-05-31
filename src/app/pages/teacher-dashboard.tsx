@@ -4,22 +4,38 @@ import { StatCard } from '@/app/components/stat-card';
 import { TeacherClassCard } from '@/app/components/teacher-class-card';
 import { ReviewItem } from '@/app/components/review-item';
 import { BookOpen, Users, Star, FileText } from 'lucide-react';
-import { mockReviews } from '@/app/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { useAuth } from '@/app/context/auth-context';
 import { getTeacherClasses } from '@/app/lib/classes-storage';
+import { listTeacherReviews, type ReviewRecord } from '@/services/reviewsService';
+import { toast } from 'sonner';
 
 export function TeacherDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [teacherClasses, setTeacherClasses] = useState(() => getTeacherClasses(user?.id));
-  const teacherReviews = mockReviews.filter(r => r.teacherId === 't1');
-  const avgRating = (teacherReviews.reduce((sum, r) => sum + r.rating, 0) / teacherReviews.length).toFixed(1);
+  const [teacherReviews, setTeacherReviews] = useState<ReviewRecord[]>([]);
+  const [avgRating, setAvgRating] = useState('0.0');
   const totalStudents = teacherClasses.reduce((sum, c) => sum + c.studentsEnrolled, 0);
 
   useEffect(() => {
     setTeacherClasses(getTeacherClasses(user?.id));
   }, [user?.id]);
+
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        const response = await listTeacherReviews(user?.id ?? 't1');
+        setTeacherReviews(response.reviews);
+        setAvgRating((response.summary.averageRating ?? 0).toFixed(1));
+      } catch (error) {
+        console.error(error);
+        toast.error('Unable to load recent feedback');
+      }
+    };
+
+    loadReviews();
+  }, []);
 
   const nextClass = useMemo(() => {
     if (teacherClasses.length === 0) return undefined;
@@ -104,7 +120,7 @@ export function TeacherDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {teacherReviews.map((review) => (
+            {teacherReviews.slice(0, 3).map((review) => (
               <ReviewItem key={review.id} review={review} />
             ))}
           </div>

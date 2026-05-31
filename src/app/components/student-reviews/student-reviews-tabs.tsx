@@ -5,6 +5,8 @@ import { StudentReviewList } from '@/app/components/student-reviews/student-revi
 interface TeacherOption {
   id: string;
   name: string;
+  classId: string;
+  className: string;
 }
 
 interface StudentReviewsTabsProps {
@@ -16,7 +18,7 @@ interface StudentReviewsTabsProps {
     comment: string;
     date: string;
   }>;
-  onSubmit: (payload: { teacherId: string; rating: number; comment: string }) => void;
+  onSubmit: (payload: { teacherId: string; classId: string; className: string; rating: number; comment: string }) => void;
 }
 
 export function StudentReviewsTabs({

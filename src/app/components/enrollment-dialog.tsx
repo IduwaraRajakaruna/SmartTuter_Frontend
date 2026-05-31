@@ -13,6 +13,8 @@ import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 import { Class } from '@/app/lib/mock-data';
 import { CreditCard, Wallet, Building2, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/app/context/auth-context';
+import { addPayment } from '@/app/lib/payments-storage';
 
 interface EnrollmentDialogProps {
   classData: Class | null;
@@ -22,6 +24,7 @@ interface EnrollmentDialogProps {
 }
 
 export function EnrollmentDialog({ classData, isOpen, onClose, onEnrollSuccess }: EnrollmentDialogProps) {
+  const { user } = useAuth();
   const [step, setStep] = useState<'payment' | 'processing' | 'success'>('payment');
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'upi' | 'netbanking'>('card');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -35,6 +38,25 @@ export function EnrollmentDialog({ classData, isOpen, onClose, onEnrollSuccess }
     try {
       // Mock payment processing - in real app this would call payment gateway
       await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // create a payment record and persist it
+      try {
+        const payment = {
+          id: `p_${Date.now()}`,
+          studentId: user?.id ?? 's1',
+          studentName: user?.name ?? 'Student',
+          classId: classData.id,
+          className: classData.title,
+          amount: classData.price,
+          status: 'completed' as const,
+          date: new Date().toISOString().split('T')[0],
+          method: paymentMethod,
+        };
+
+        addPayment(payment);
+      } catch (err) {
+        console.warn('Failed to persist payment locally', err);
+      }
 
       setStep('success');
       toast.success('Enrollment successful!');

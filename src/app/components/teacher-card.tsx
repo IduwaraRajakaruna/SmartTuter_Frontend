@@ -2,11 +2,22 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/app/components/ui/avatar';
-import { Teacher } from '@/app/lib/mock-data';
-import { Star, BookOpen, Award } from 'lucide-react';
+import { Star, BookOpen } from 'lucide-react';
+
+type TeacherCardTeacher = {
+  id: string;
+  name: string;
+  subject: string;
+  qualification?: string;
+  experience?: number;
+  bio?: string;
+  status?: string;
+  rating?: number;
+  totalReviews?: number;
+};
 
 interface TeacherCardProps {
-  teacher: Teacher;
+  teacher: TeacherCardTeacher;
   onViewProfile?: (teacherId: string) => void;
   showActions?: boolean;
 }
@@ -28,7 +39,7 @@ export function TeacherCard({ teacher, onViewProfile, showActions = true }: Teac
           <div className="flex-1">
             <CardTitle className="text-lg">{teacher.name}</CardTitle>
             <CardDescription className="mt-1">
-              {teacher.qualification}
+              {teacher.qualification || 'Qualified educator'}
             </CardDescription>
             <div className="flex items-center gap-2 mt-2">
               <Badge variant="secondary">{teacher.subject}</Badge>
@@ -46,12 +57,12 @@ export function TeacherCard({ teacher, onViewProfile, showActions = true }: Teac
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="font-medium">{teacher.rating}</span>
-            <span className="text-muted-foreground">({teacher.totalReviews})</span>
+            <span className="font-medium">{teacher.rating ?? 0}</span>
+            <span className="text-muted-foreground">({teacher.totalReviews ?? 0})</span>
           </div>
           <div className="flex items-center gap-1">
             <BookOpen className="w-4 h-4 text-muted-foreground" />
-            <span>{teacher.experience} years</span>
+            <span>{teacher.experience ?? 0} years</span>
           </div>
         </div>
       </CardContent>

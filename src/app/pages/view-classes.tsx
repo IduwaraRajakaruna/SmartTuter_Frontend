@@ -9,12 +9,17 @@ import { Input } from '@/app/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/app/context/auth-context';
+import { useNavigate } from 'react-router-dom';
 
 export function ViewClassesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [subjectFilter, setSubjectFilter] = useState<string>('all');
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [isEnrollDialogOpen, setIsEnrollDialogOpen] = useState(false);
+
+  const { user, isAuthenticated, isInitialized } = useAuth();
+  const navigate = useNavigate();
 
   const storedClasses = getStoredClasses();
   const allClasses = storedClasses.length > 0 ? storedClasses : mockClasses;
@@ -32,6 +37,12 @@ export function ViewClassesPage() {
   });
 
   const handleEnroll = (classId: string) => {
+    // If not logged in, force student registration/login before enrolling
+    if (!isAuthenticated || !user || user.role !== 'student') {
+      navigate('/login');
+      return;
+    }
+
     const classData = allClasses.find(c => c.id === classId);
     if (classData) {
       setSelectedClass(classData);

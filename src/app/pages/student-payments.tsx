@@ -3,7 +3,7 @@ import { StudentPaymentsFilters } from '@/app/components/student-payments/studen
 import { StudentPaymentsSummary } from '@/app/components/student-payments/student-payments-summary';
 import { StudentPaymentsTable } from '@/app/components/student-payments/student-payments-table';
 import { useAuth } from '@/app/context/auth-context';
-import { mockPayments } from '@/app/lib/mock-data';
+import { seedPayments, getStoredPayments } from '@/app/lib/payments-storage';
 
 const statusFilters = ['all', 'completed', 'pending', 'failed'] as const;
 
@@ -14,7 +14,8 @@ export function StudentPaymentsPage() {
   const studentId = user?.id ?? 's1';
 
   const studentPayments = useMemo(() => {
-    return mockPayments.filter(payment => payment.studentId === studentId);
+    seedPayments();
+    return getStoredPayments().filter(payment => payment.studentId === studentId);
   }, [studentId]);
 
   const filteredPayments = studentPayments.filter(payment => {

@@ -9,24 +9,34 @@ import { Star } from 'lucide-react';
 interface TeacherOption {
   id: string;
   name: string;
+  classId: string;
+  className: string;
 }
 
 interface StudentReviewFormProps {
   teacherOptions: TeacherOption[];
-  onSubmit: (payload: { teacherId: string; rating: number; comment: string }) => void;
+  onSubmit: (payload: { teacherId: string; classId: string; className: string; rating: number; comment: string }) => void;
 }
 
 export function StudentReviewForm({ teacherOptions, onSubmit }: StudentReviewFormProps) {
-  const [teacherId, setTeacherId] = useState(teacherOptions[0]?.id ?? '');
+  const [selection, setSelection] = useState(() => teacherOptions[0] ? `${teacherOptions[0].id}__${teacherOptions[0].classId}` : '');
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
 
+  const selectedOption = teacherOptions.find(option => `${option.id}__${option.classId}` === selection);
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!teacherId || !comment.trim()) {
+    if (!selectedOption || !comment.trim()) {
       return;
     }
-    onSubmit({ teacherId, rating, comment: comment.trim() });
+    onSubmit({
+      teacherId: selectedOption.id,
+      classId: selectedOption.classId,
+      className: selectedOption.className,
+      rating,
+      comment: comment.trim(),
+    });
     setComment('');
     setRating(5);
   };
@@ -40,14 +50,14 @@ export function StudentReviewForm({ teacherOptions, onSubmit }: StudentReviewFor
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Teacher</Label>
-            <Select value={teacherId} onValueChange={setTeacherId}>
+            <Select value={selection} onValueChange={setSelection}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a teacher" />
               </SelectTrigger>
               <SelectContent>
                 {teacherOptions.map(option => (
-                  <SelectItem key={option.id} value={option.id}>
-                    {option.name}
+                  <SelectItem key={`${option.id}__${option.classId}`} value={`${option.id}__${option.classId}`}>
+                    {option.name} - {option.className}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -82,7 +92,7 @@ export function StudentReviewForm({ teacherOptions, onSubmit }: StudentReviewFor
             />
           </div>
 
-          <Button type="submit" disabled={!teacherId || !comment.trim()}>
+          <Button type="submit" disabled={!selectedOption || !comment.trim()}>
             Submit Review
           </Button>
         </form>
