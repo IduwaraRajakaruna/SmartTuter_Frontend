@@ -8,9 +8,11 @@ import { Textarea } from '@/app/components/ui/textarea';
 import { Input } from '@/app/components/ui/input';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { toast } from 'sonner';
+import { useAuth } from '@/app/context/auth-context';
 
 export function CreateClass() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -23,7 +25,7 @@ export function CreateClass() {
     maxStudents: '',
     startDate: '',
     endDate: '',
-    zoomLink: '',
+    zoomLink: user?.zoomLink ?? '',
   });
 
   const handleChange = (field: string, value: string) => {

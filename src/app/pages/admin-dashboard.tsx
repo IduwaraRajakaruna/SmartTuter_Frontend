@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatCard } from '@/app/components/stat-card';
 import { TeacherApprovalDialog } from '@/app/components/teacher-approval-dialog';
 import { StudentThemeToggle } from '@/app/components/student-profile/student-theme-toggle';
 import { Users, GraduationCap, CreditCard, FileText, TrendingUp, AlertCircle } from 'lucide-react';
-import { mockTeachers, mockStudents, mockPayments, mockClasses, Teacher } from '@/app/lib/mock-data';
+import { mockStudents, mockPayments, mockClasses } from '@/app/lib/mock-data';
+import { TeacherApproval } from '@/app/lib/teacher-approvals';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
@@ -17,13 +18,39 @@ import {
   TableRow,
 } from '@/app/components/ui/table';
 import { toast } from 'sonner';
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export function AdminDashboard() {
   const navigate = useNavigate();
-  const [teachers, setTeachers] = useState(mockTeachers);
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [teachers, setTeachers] = useState<TeacherApproval[]>([]);
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherApproval | null>(null);
   const [approvalAction, setApprovalAction] = useState<'approve' | 'reject' | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadTeachers = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/api/admin/teachers`, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : undefined,
+        },
+      });
+      setTeachers(response.data?.teachers || []);
+    } catch (error) {
+      console.error(error);
+      toast.error('Unable to load teacher approvals.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTeachers();
+  }, []);
 
   const pendingTeachers = teachers.filter(t => t.status === 'pending');
   const totalRevenue = mockPayments
@@ -31,28 +58,39 @@ export function AdminDashboard() {
     .reduce((sum, p) => sum + p.amount, 0);
   const pendingPayments = mockPayments.filter(p => p.status === 'pending');
 
-  const handleApprovalAction = (teacher: Teacher, action: 'approve' | 'reject') => {
+  const handleApprovalAction = (teacher: TeacherApproval, action: 'approve' | 'reject') => {
     setSelectedTeacher(teacher);
     setApprovalAction(action);
     setIsDialogOpen(true);
   };
 
-  const handleConfirmApproval = (teacherId: string, action: 'approve' | 'reject', reason?: string) => {
-    // Update teacher status
-    setTeachers(prev => prev.map(t => 
-      t.id === teacherId 
-        ? { ...t, status: action === 'approve' ? 'active' : 'inactive' } 
-        : t
-    ));
+  const handleConfirmApproval = async (teacherId: string, action: 'approve' | 'reject', reason?: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.patch(
+        `${API_BASE_URL}/api/admin/teachers/${teacherId}/status`,
+        { action, reason },
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+        }
+      );
 
-    // Mock API call - in real app this would call backend
-    console.log(`${action} teacher ${teacherId}`, reason);
+      const updatedTeacher = response.data?.teacher;
+      if (updatedTeacher) {
+        setTeachers(prev => prev.map(t => (t.id === teacherId ? { ...t, ...updatedTeacher } : t)));
+      }
 
-    toast.success(
-      action === 'approve' 
-        ? 'Teacher approved successfully!' 
-        : 'Teacher application rejected'
-    );
+      toast.success(
+        action === 'approve'
+          ? 'Teacher approved successfully!'
+          : 'Teacher application rejected'
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error('Unable to update teacher status.');
+    }
   };
 
   return (
@@ -74,7 +112,7 @@ export function AdminDashboard() {
         />
         <StatCard
           title="Total Teachers"
-          value={mockTeachers.length}
+          value={teachers.length}
           icon={GraduationCap}
           description={`${pendingTeachers.length} pending approval`}
           color="purple"
@@ -102,7 +140,7 @@ export function AdminDashboard() {
       </div>
 
       {/* Alerts */}
-      {pendingTeachers.length > 0 && (
+      {!isLoading && pendingTeachers.length > 0 && (
         <Card className="border-red-400 bg-gray-400">
           <CardContent className="p-4 flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-red-700" />
@@ -122,7 +160,7 @@ export function AdminDashboard() {
       )}
 
       {/* Pending Teacher Approvals */}
-      {pendingTeachers.length > 0 && (
+      {!isLoading && pendingTeachers.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Pending Teacher Approvals</CardTitle>

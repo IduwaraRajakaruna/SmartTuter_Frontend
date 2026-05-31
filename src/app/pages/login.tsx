@@ -67,6 +67,13 @@ export function LoginPage() {
         role: responseUser.role,
         status: responseUser.status || "active",
         joinedDate: responseUser.joinedDate || new Date().toISOString(),
+        phone: responseUser.phone,
+        subject: responseUser.subject,
+        qualification: responseUser.qualification,
+        experience: responseUser.experience,
+        bio: responseUser.bio,
+        hourlyRate: responseUser.hourlyRate,
+        zoomLink: responseUser.zoomLink,
       };
 
       setSession(normalizedUser);
@@ -80,7 +87,8 @@ export function LoginPage() {
       }
     } catch (error) {
       console.error(error);
-      setError("Login failed. Please check your credentials.");
+      const serverMessage = (error as any)?.response?.data?.message;
+      setError(serverMessage || "Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }

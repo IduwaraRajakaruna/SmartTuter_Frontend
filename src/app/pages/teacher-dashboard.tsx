@@ -4,8 +4,10 @@ import { ReviewItem } from '@/app/components/review-item';
 import { BookOpen, Users, Star, FileText } from 'lucide-react';
 import { mockClasses, mockReviews } from '@/app/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { useAuth } from '@/app/context/auth-context';
 
 export function TeacherDashboard() {
+  const { user } = useAuth();
   // Mock teacher's classes (first 2 classes for this teacher)
   const teacherClasses = mockClasses.filter(c => c.teacherId === 't1');
   const teacherReviews = mockReviews.filter(r => r.teacherId === 't1');
@@ -15,7 +17,7 @@ export function TeacherDashboard() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl mb-2">Welcome Back, Dr. Johnson!</h1>
+        <h1 className="text-3xl mb-2">Welcome Back, {user?.name ?? 'Teacher'}!</h1>
         <p className="text-muted-foreground">Here's your teaching overview</p>
       </div>
 

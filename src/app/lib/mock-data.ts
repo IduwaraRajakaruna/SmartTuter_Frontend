@@ -8,6 +8,13 @@ export interface User {
   avatar?: string;
   status: 'active' | 'inactive' | 'pending';
   joinedDate: string;
+  phone?: string;
+  subject?: string;
+  qualification?: string;
+  experience?: number;
+  bio?: string;
+  hourlyRate?: number;
+  zoomLink?: string;
 }
 
 export interface Teacher extends User {
