@@ -1,52 +1,44 @@
-import { useMemo, useState } from 'react';
-import { FileText, Video, Link as LinkIcon, Search, BookOpen } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { FileText, Video, Link as LinkIcon, Search, BookOpen, Trash2 } from 'lucide-react';
 import { StatCard } from '@/app/components/stat-card';
-import { mockStudyMaterials, mockClasses } from '@/app/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { EmptyState } from '@/app/components/empty-state';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/app/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/app/components/ui/table';
+import { toast } from 'sonner';
+import type { StudyMaterial } from '@/services/materialsService';
+import { listMaterials, deleteMaterial } from '@/services/materialsService';
 
 export function AdminContentPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [materials, setMaterials] = useState<StudyMaterial[]>([]);
 
-  const classMap = useMemo(() => {
-    return new Map(mockClasses.map(classItem => [classItem.id, classItem]));
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await listMaterials();
+        setMaterials(data);
+      } catch (e: any) {
+        toast.error(e?.message || 'Failed to load materials');
+      }
+    })();
   }, []);
 
-  const materialsWithMeta = useMemo(() => {
-    return mockStudyMaterials.map(material => {
-      const classItem = classMap.get(material.classId);
-      return {
-        ...material,
-        className: classItem?.title ?? 'Unknown Class',
-        teacherName: classItem?.teacherName ?? 'Unknown Teacher',
-      };
-    });
-  }, [classMap]);
+  const pdfCount = useMemo(() => materials.filter((m) => m.type === 'pdf').length, [materials]);
+  const videoCount = useMemo(() => materials.filter((m) => m.type === 'video').length, [materials]);
+  const linkCount = useMemo(() => materials.filter((m) => m.type === 'link').length, [materials]);
 
   const filteredMaterials = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    if (!term) return materialsWithMeta;
+    if (!term) return materials;
 
-    return materialsWithMeta.filter(material =>
-      [material.title, material.className, material.teacherName]
-        .some(field => field.toLowerCase().includes(term))
-    );
-  }, [materialsWithMeta, searchTerm]);
-
-  const pdfCount = mockStudyMaterials.filter(m => m.type === 'pdf').length;
-  const videoCount = mockStudyMaterials.filter(m => m.type === 'video').length;
-  const linkCount = mockStudyMaterials.filter(m => m.type === 'link').length;
+    return materials.filter((m) => {
+      const haystack = [m.title, m.classId, m.type, m.url].join(' ').toLowerCase();
+      return haystack.includes(term);
+    });
+  }, [materials, searchTerm]);
 
   const getTypeBadge = (type: string) => {
     switch (type) {
@@ -61,6 +53,30 @@ export function AdminContentPage() {
     }
   };
 
+  const getClassTitle = (classId: string) => {
+    // Classes are stored only in frontend localStorage.
+    // Admin page needs to map classId -> class title for display.
+    // Fallback to classId if class data isn't available.
+    try {
+      const raw = localStorage.getItem('smarttuter.classes');
+      if (!raw) return classId;
+      const classes = JSON.parse(raw) as Array<{ id: string; title: string }>;
+      return classes.find((c) => c.id === classId)?.title || classId;
+    } catch {
+      return classId;
+    }
+  };
+
+  const handleDelete = async (materialId: string) => {
+    try {
+      await deleteMaterial(materialId);
+      setMaterials((prev) => prev.filter((m) => m.id !== materialId));
+      toast.success('Material deleted');
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to delete');
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div>
@@ -71,18 +87,12 @@ export function AdminContentPage() {
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Materials"
-          value={mockStudyMaterials.length}
+          value={materials.length}
           icon={BookOpen}
           description="All uploads"
           color="blue"
         />
-        <StatCard
-          title="PDF Resources"
-          value={pdfCount}
-          icon={FileText}
-          description="Documents"
-          color="cyan"
-        />
+        <StatCard title="PDF Resources" value={pdfCount} icon={FileText} description="Documents" color="cyan" />
         <StatCard
           title="Video Lessons"
           value={videoCount}
@@ -106,14 +116,15 @@ export function AdminContentPage() {
             <div className="relative w-full md:w-72">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search by title, class, teacher"
+                placeholder="Search by title, class, type"
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(event.target.value)}
                 className="pl-10"
               />
             </div>
           </div>
         </CardHeader>
+
         <CardContent>
           {filteredMaterials.length === 0 ? (
             <EmptyState message="No study materials match your search" />
@@ -123,7 +134,6 @@ export function AdminContentPage() {
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Class</TableHead>
-                  <TableHead>Teacher</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Uploaded</TableHead>
                   <TableHead>Size</TableHead>
@@ -134,12 +144,9 @@ export function AdminContentPage() {
                 {filteredMaterials.map((material) => (
                   <TableRow key={material.id}>
                     <TableCell className="font-medium">{material.title}</TableCell>
-                    <TableCell>{material.className}</TableCell>
-                    <TableCell>{material.teacherName}</TableCell>
+                    <TableCell>{getClassTitle(material.classId)}</TableCell>
                     <TableCell>
-                      <Badge className={getTypeBadge(material.type)}>
-                        {material.type}
-                      </Badge>
+                      <Badge className={getTypeBadge(material.type)}>{material.type}</Badge>
                     </TableCell>
                     <TableCell>{material.uploadedDate}</TableCell>
                     <TableCell>{material.size ?? '—'}</TableCell>
@@ -152,8 +159,14 @@ export function AdminContentPage() {
                         >
                           View
                         </Button>
-                        <Button size="sm" variant="destructive">
-                          Disable
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDelete(material.id)}
+                          className="gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
                         </Button>
                       </div>
                     </TableCell>
@@ -167,3 +180,4 @@ export function AdminContentPage() {
     </div>
   );
 }
+

@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { Badge } from '@/app/components/ui/badge';
-import { mockStudyMaterials, mockClasses } from '@/app/lib/mock-data';
+import { mockClasses } from '@/app/lib/mock-data';
+import type { StudyMaterial } from '@/services/materialsService';
 import { Upload, FileText, Video, Link as LinkIcon, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/app/context/auth-context';
+import { getTeacherClasses } from '@/app/lib/classes-storage';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,10 +22,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/app/components/ui/alert-dialog';
+import { listMaterials, uploadMaterial, deleteMaterial } from '@/services/materialsService';
+
 
 export function StudyMaterialsPage() {
-  const teacherClasses = mockClasses.filter(c => c.teacherId === 't1');
-  const [materials, setMaterials] = useState(mockStudyMaterials);
+  const { user } = useAuth();
+  const storedClasses = getTeacherClasses(user?.id);
+  const teacherClasses = storedClasses.length > 0
+    ? storedClasses
+    : mockClasses.filter(c => c.teacherId === 't1');
+  const [materials, setMaterials] = useState<StudyMaterial[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
   const [uploadForm, setUploadForm] = useState({
@@ -32,6 +41,28 @@ export function StudyMaterialsPage() {
     file: null as File | null,
     url: '',
   });
+
+  useEffect(() => {
+    // Load materials from backend
+    (async () => {
+      try {
+        const data = await listMaterials();
+        setMaterials(data);
+      } catch (e: any) {
+        toast.error(e?.message || 'Failed to load materials');
+      }
+    })();
+  }, []);
+
+
+  const visibleMaterials = useMemo(() => {
+    const classIds = new Set(teacherClasses.map(c => c.id));
+    return materials.filter(material => classIds.has(material.classId));
+  }, [materials, teacherClasses]);
+
+  const classLookup = useMemo(() => {
+    return new Map(teacherClasses.map(classData => [classData.id, classData]));
+  }, [teacherClasses]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -59,23 +90,17 @@ export function StudyMaterialsPage() {
     setIsUploading(true);
 
     try {
-      // Mock upload - in real app this would upload to backend/storage
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      const newMaterial = {
-        id: `m${materials.length + 1}`,
+      const created = await uploadMaterial({
         classId: uploadForm.classId,
         title: uploadForm.title,
         type: uploadForm.type,
-        url: uploadForm.type === 'link' ? uploadForm.url : `/materials/${uploadForm.file?.name}`,
-        uploadedDate: new Date().toISOString().split('T')[0],
-        size: uploadForm.file ? `${(uploadForm.file.size / 1024 / 1024).toFixed(1)} MB` : undefined,
-      };
+        file: uploadForm.type === 'link' ? null : uploadForm.file,
+        url: uploadForm.type === 'link' ? uploadForm.url : undefined,
+      });
 
-      setMaterials(prev => [...prev, newMaterial]);
+      setMaterials(prev => [created, ...prev]);
       toast.success('Material uploaded successfully!');
-      
-      // Reset form
+
       setUploadForm({
         classId: '',
         title: '',
@@ -83,17 +108,24 @@ export function StudyMaterialsPage() {
         file: null,
         url: '',
       });
-    } catch (error) {
-      toast.error('Failed to upload material');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to upload material');
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleDelete = (materialId: string) => {
-    setMaterials(prev => prev.filter(m => m.id !== materialId));
-    toast.success('Material deleted successfully');
+
+  const handleDelete = async (materialId: string) => {
+    try {
+      await deleteMaterial(materialId);
+      setMaterials(prev => prev.filter(m => m.id !== materialId));
+      toast.success('Material deleted successfully');
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to delete');
+    }
   };
+
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -218,8 +250,8 @@ export function StudyMaterialsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {materials.map((material) => {
-              const classInfo = mockClasses.find(c => c.id === material.classId);
+            {visibleMaterials.map((material) => {
+              const classInfo = classLookup.get(material.classId);
               return (
                 <div key={material.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex-1">
@@ -261,7 +293,7 @@ export function StudyMaterialsPage() {
             })}
           </div>
 
-          {materials.length === 0 && (
+          {visibleMaterials.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               No study materials uploaded yet
             </div>
