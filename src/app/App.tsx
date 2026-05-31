@@ -26,6 +26,8 @@ import { CreateClass } from '@/app/pages/teacher-create-class';
 import { StudyMaterialsPage } from '@/app/pages/teacher-materials';
 import { TeacherFeedbackPage } from '@/app/pages/teacher-feedback';
 import { TeacherProfilePage } from '@/app/pages/teacher-profile';
+import { TeacherPublicProfilePage } from '@/app/pages/teacher-public-profile';
+
 
 // Admin Pages
 import { AdminDashboard } from '@/app/pages/admin-dashboard';
@@ -239,6 +241,9 @@ function AppRouter() {
           </ProtectedRoute>
         }
       />
+
+      {/* Public teacher profile */}
+      <Route path="/teachers/:teacherId" element={<TeacherPublicProfilePage />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
