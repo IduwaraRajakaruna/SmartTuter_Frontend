@@ -15,18 +15,31 @@ interface ClassCardProps {
 }
 
 export function ClassCard({ classData, onEnroll, onViewDetails, showActions = true }: ClassCardProps) {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-500/10 text-green-700 border-green-200';
-      case 'upcoming':
-        return 'bg-blue-500/10 text-blue-700 border-blue-200';
-      case 'completed':
-        return 'bg-gray-500/10 text-gray-700 border-gray-200';
-      default:
-        return 'bg-gray-500/10 text-gray-700 border-gray-200';
+  const getComputedBatchLabel = (data: Class) => {
+    const now = new Date();
+    const start = data.startDate ? new Date(data.startDate) : null;
+    const end = data.endDate ? new Date(data.endDate) : null;
+
+    if (!start || !end) {
+      // Fallback to classData.status if dates are missing
+      if (data.status === 'active') return 'Ongoing batch';
+      if (data.status === 'upcoming') return 'Upcoming batch';
+      if (data.status === 'completed') return 'Completed batch';
+      return 'Ongoing batch';
     }
+
+    if (start.getTime() > now.getTime()) return 'Upcoming batch';
+    if (now.getTime() >= start.getTime() && now.getTime() <= end.getTime()) return 'Ongoing batch';
+    return 'Completed batch';
   };
+
+  const getComputedBatchColor = (data: Class) => {
+    const label = getComputedBatchLabel(data);
+    if (label === 'Upcoming batch') return 'bg-blue-500/10 text-blue-700 border-blue-200';
+    if (label === 'Ongoing batch') return 'bg-green-500/10 text-green-700 border-green-200';
+    return 'bg-red-500/10 text-red-700 border-red-200';
+  };
+
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -38,8 +51,13 @@ export function ClassCard({ classData, onEnroll, onViewDetails, showActions = tr
               By {classData.teacherName}
             </CardDescription>
           </div>
-          <Badge className={getStatusColor(classData.status)}>
-            {classData.status}
+          <Badge className={getComputedBatchColor(classData)}>
+            {(() => {
+              const label = getComputedBatchLabel(classData);
+              if (label === 'Upcoming batch') return 'Upcoming';
+              if (label === 'Ongoing batch') return 'Ongoing';
+              return 'Completed';
+            })()}
           </Badge>
         </div>
       </CardHeader>
@@ -50,6 +68,20 @@ export function ClassCard({ classData, onEnroll, onViewDetails, showActions = tr
             <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
             <span>{classData.schedule}</span>
           </div>
+
+          {classData.startDate && (
+            <div className="flex items-center text-sm">
+              <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
+              {(() => {
+                const now = new Date();
+                const start = new Date(classData.startDate);
+                const label = start.getTime() > now.getTime() ? 'Upcoming batch' : 'Ongoing class';
+                return <span>{label}</span>;
+              })()}
+            </div>
+          )}
+
+
           <div className="flex items-center text-sm">
             <Users className="w-4 h-4 mr-2 text-muted-foreground" />
             <span>{classData.studentsEnrolled} / {classData.maxStudents} students</span>
@@ -75,6 +107,7 @@ export function ClassCard({ classData, onEnroll, onViewDetails, showActions = tr
           </Button>
         </CardFooter>
       )}
+
     </Card>
   );
 }
