@@ -10,10 +10,10 @@ import {
 import { Button } from '@/app/components/ui/button';
 import { Label } from '@/app/components/ui/label';
 import { Textarea } from '@/app/components/ui/textarea';
-import { Teacher } from '@/app/lib/mock-data';
+import { TeacherApproval } from '@/app/lib/teacher-approvals';
 
 interface TeacherApprovalDialogProps {
-  teacher: Teacher | null;
+  teacher: TeacherApproval | null;
   action: 'approve' | 'reject' | null;
   isOpen: boolean;
   onClose: () => void;

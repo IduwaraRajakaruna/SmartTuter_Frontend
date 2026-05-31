@@ -7,6 +7,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { GraduationCap } from 'lucide-react';
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export function RegisterPage() {
   const [searchParams] = useSearchParams();
@@ -24,6 +27,7 @@ export function RegisterPage() {
   const [experience, setExperience] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,15 +50,29 @@ export function RegisterPage() {
       return;
     }
 
-    // Mock registration - no backend call
-    // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Registration success
-    setSuccess(true);
-    setTimeout(() => {
-      navigate('/login');
-    }, 1500);
+    try {
+      const payload = {
+        fullName: name,
+        email,
+        password,
+        role,
+        subject: role === 'teacher' ? subject : undefined,
+        qualification: role === 'teacher' ? qualification : undefined,
+        experience: role === 'teacher' ? Number(experience) : undefined,
+      };
+
+      const response = await axios.post(`${API_BASE_URL}/api/auth/register`, payload);
+      const message = response.data?.message || 'Registration successful';
+
+      setSuccessMessage(message);
+      setSuccess(true);
+      setTimeout(() => {
+        navigate('/login');
+      }, 1500);
+    } catch (err: any) {
+      const serverMessage = err?.response?.data?.message;
+      setError(serverMessage || 'Registration failed. Please try again.');
+    }
   };
 
   return (
@@ -179,7 +197,7 @@ export function RegisterPage() {
               {success && (
                 <Alert>
                   <AlertDescription>
-                    Registration successful! Redirecting to login...
+                    {successMessage || 'Registration successful! Redirecting to login...'}
                   </AlertDescription>
                 </Alert>
               )}

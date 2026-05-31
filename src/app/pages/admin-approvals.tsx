@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Users, UserCheck, UserX, Search, AlertCircle } from 'lucide-react';
 import { StatCard } from '@/app/components/stat-card';
 import { TeacherApprovalDialog } from '@/app/components/teacher-approval-dialog';
-import { mockTeachers, Teacher } from '@/app/lib/mock-data';
+import { TeacherApproval } from '@/app/lib/teacher-approvals';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
@@ -17,13 +17,39 @@ import {
   TableRow,
 } from '@/app/components/ui/table';
 import { toast } from 'sonner';
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export function AdminApprovalsPage() {
-  const [teachers, setTeachers] = useState(mockTeachers);
+  const [teachers, setTeachers] = useState<TeacherApproval[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherApproval | null>(null);
   const [approvalAction, setApprovalAction] = useState<'approve' | 'reject' | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const loadTeachers = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/api/admin/teachers`, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : undefined,
+        },
+      });
+      setTeachers(response.data?.teachers || []);
+    } catch (error) {
+      console.error(error);
+      toast.error('Unable to load teacher approvals.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTeachers();
+  }, []);
 
   const pendingTeachers = teachers.filter(t => t.status === 'pending');
   const approvedTeachers = teachers.filter(t => t.status === 'active');
@@ -42,28 +68,41 @@ export function AdminApprovalsPage() {
     });
   }, [pendingTeachers, searchTerm]);
 
-  const handleApprovalAction = (teacher: Teacher, action: 'approve' | 'reject') => {
+  const handleApprovalAction = (teacher: TeacherApproval, action: 'approve' | 'reject') => {
     setSelectedTeacher(teacher);
     setApprovalAction(action);
     setIsDialogOpen(true);
   };
 
-  const handleConfirmApproval = (teacherId: string, action: 'approve' | 'reject', reason?: string) => {
-    setTeachers(prev =>
-      prev.map(t =>
-        t.id === teacherId
-          ? { ...t, status: action === 'approve' ? 'active' : 'inactive' }
-          : t
-      )
-    );
+  const handleConfirmApproval = async (teacherId: string, action: 'approve' | 'reject', reason?: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.patch(
+        `${API_BASE_URL}/api/admin/teachers/${teacherId}/status`,
+        { action, reason },
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+        }
+      );
 
-    console.log(`${action} teacher ${teacherId}`, reason);
+      const updatedTeacher = response.data?.teacher;
+      if (updatedTeacher) {
+        setTeachers(prev =>
+          prev.map(t => (t.id === teacherId ? { ...t, ...updatedTeacher } : t))
+        );
+      }
 
-    toast.success(
-      action === 'approve'
-        ? 'Teacher approved successfully!'
-        : 'Teacher application rejected'
-    );
+      toast.success(
+        action === 'approve'
+          ? 'Teacher approved successfully!'
+          : 'Teacher application rejected'
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error('Unable to update teacher status.');
+    }
   };
 
   return (
@@ -120,7 +159,9 @@ export function AdminApprovalsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {filteredPendingTeachers.length === 0 ? (
+          {isLoading ? (
+            <EmptyState message="Loading approvals..." />
+          ) : filteredPendingTeachers.length === 0 ? (
             <EmptyState message="No pending approvals match your search" />
           ) : (
             <Table>

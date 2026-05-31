@@ -5,8 +5,10 @@ import { BookOpen, Calendar, CreditCard, Star } from 'lucide-react';
 import { mockClasses, mockPayments } from '@/app/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
+import { useAuth } from '@/app/context/auth-context';
 
 export function StudentDashboard() {
+  const { user } = useAuth();
   // Mock student's enrolled classes
   const enrolledClasses = mockClasses.filter((_, i) => i < 2);
   const upcomingClass = enrolledClasses[0];
@@ -15,7 +17,7 @@ export function StudentDashboard() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl mb-2">Welcome Back, Student!</h1>
+        <h1 className="text-3xl mb-2">Welcome Back, {user?.name ?? 'Student'}!</h1>
         <p className="text-muted-foreground">Here's your learning overview</p>
       </div>
 

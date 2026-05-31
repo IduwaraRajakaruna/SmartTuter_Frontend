@@ -5,8 +5,10 @@ import { TeacherClassCard } from '@/app/components/teacher-class-card';
 import { mockClasses } from '@/app/lib/mock-data';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/app/context/auth-context';
 
 export function ManageClasses() {
+  const { user } = useAuth();
   const [classes, setClasses] = useState(mockClasses.filter(c => c.teacherId === 't1'));
 
   const handleEditClass = (classId: string) => {
@@ -17,8 +19,9 @@ export function ManageClasses() {
 
   const handleStartSession = (classId: string) => {
     const classData = classes.find(c => c.id === classId);
-    if (classData?.zoomLink) {
-      window.open(classData.zoomLink, '_blank');
+    const zoomLink = classData?.zoomLink || user?.zoomLink;
+    if (zoomLink) {
+      window.open(zoomLink, '_blank');
       toast.success('Opening Zoom session...');
     } else {
       toast.error('No Zoom link configured for this class');
