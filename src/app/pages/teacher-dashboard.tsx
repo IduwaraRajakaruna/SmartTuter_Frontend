@@ -1,18 +1,46 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StatCard } from '@/app/components/stat-card';
 import { TeacherClassCard } from '@/app/components/teacher-class-card';
 import { ReviewItem } from '@/app/components/review-item';
 import { BookOpen, Users, Star, FileText } from 'lucide-react';
-import { mockClasses, mockReviews } from '@/app/lib/mock-data';
+import { mockReviews } from '@/app/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { useAuth } from '@/app/context/auth-context';
+import { getTeacherClasses } from '@/app/lib/classes-storage';
 
 export function TeacherDashboard() {
   const { user } = useAuth();
-  // Mock teacher's classes (first 2 classes for this teacher)
-  const teacherClasses = mockClasses.filter(c => c.teacherId === 't1');
+  const navigate = useNavigate();
+  const [teacherClasses, setTeacherClasses] = useState(() => getTeacherClasses(user?.id));
   const teacherReviews = mockReviews.filter(r => r.teacherId === 't1');
   const avgRating = (teacherReviews.reduce((sum, r) => sum + r.rating, 0) / teacherReviews.length).toFixed(1);
   const totalStudents = teacherClasses.reduce((sum, c) => sum + c.studentsEnrolled, 0);
+
+  useEffect(() => {
+    setTeacherClasses(getTeacherClasses(user?.id));
+  }, [user?.id]);
+
+  const nextClass = useMemo(() => {
+    if (teacherClasses.length === 0) return undefined;
+    const sorted = [...teacherClasses].sort((a, b) => {
+      const aTime = new Date(a.startDate).getTime();
+      const bTime = new Date(b.startDate).getTime();
+      return aTime - bTime;
+    });
+    return sorted[0];
+  }, [teacherClasses]);
+
+  const handleEditClass = (classId: string) => {
+    navigate(`/teacher/classes/create?edit=${classId}`);
+  };
+
+  const handleStartSession = (classId: string) => {
+    const classData = teacherClasses.find(c => c.id === classId);
+    if (classData?.zoomLink) {
+      window.open(classData.zoomLink, '_blank');
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -54,20 +82,20 @@ export function TeacherDashboard() {
         />
       </div>
 
-      {/* My Classes */}
-      <div>
-        <h2 className="text-2xl mb-4">My Classes</h2>
-        <div className="grid md:grid-cols-2 gap-4">
-          {teacherClasses.map((classData) => (
-            <TeacherClassCard 
-              key={classData.id} 
-              classData={classData}
-              onEdit={() => {}}
-              onStartSession={() => {}}
+      {/* Next Class */}
+      {nextClass && (
+        <div>
+          <h2 className="text-2xl mb-4">Next Class</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <TeacherClassCard
+              key={nextClass.id}
+              classData={nextClass}
+              onEdit={handleEditClass}
+              onStartSession={handleStartSession}
             />
-          ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Recent Reviews */}
       <Card>

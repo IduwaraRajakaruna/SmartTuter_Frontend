@@ -8,6 +8,7 @@ import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { Input } from '@/app/components/ui/input';
 import { EmptyState } from '@/app/components/empty-state';
+import { LoadingSpinner } from '@/app/components/ui/loading-spinner';
 import {
   Table,
   TableBody,
@@ -160,7 +161,7 @@ export function AdminApprovalsPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <EmptyState message="Loading approvals..." />
+            <LoadingSpinner label="Loading approvals" className="py-6" />
           ) : filteredPendingTeachers.length === 0 ? (
             <EmptyState message="No pending approvals match your search" />
           ) : (

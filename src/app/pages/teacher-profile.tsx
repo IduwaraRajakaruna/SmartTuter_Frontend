@@ -9,6 +9,7 @@ import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/card';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { LoadingSpinner } from '@/app/components/ui/loading-spinner';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -26,6 +27,7 @@ export function TeacherProfilePage() {
     zoomLink: user?.zoomLink ?? 'https://zoom.us/j/1234567890',
   });
   const [profileStatus, setProfileStatus] = useState(user?.status ?? teacher?.status);
+  const [isLoading, setIsLoading] = useState(true);
 
   const teacherClasses = mockClasses.filter(classData => classData.teacherId === teacherId);
   const activeClasses = teacherClasses.filter(classData => classData.status === 'active').length;
@@ -38,6 +40,7 @@ export function TeacherProfilePage() {
 
   useEffect(() => {
     const loadProfile = async () => {
+      setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get(`${API_BASE_URL}/api/users/me`, {
@@ -78,6 +81,8 @@ export function TeacherProfilePage() {
         }
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -162,51 +167,60 @@ export function TeacherProfilePage() {
         <p className="text-muted-foreground">Manage your professional profile and public information</p>
       </div>
 
-      <TeacherProfileHeader
-        name={formState.name}
-        email={user?.email ?? teacher?.email ?? 'teacher@tuition.com'}
-        subject={formState.subject}
-        qualification={formState.qualification}
-        status={profileStatus}
-      />
-
-      <div className="grid xl:grid-cols-[2fr_1fr] gap-6">
-        <TeacherProfileForm
-          name={formState.name}
-          email={user?.email ?? teacher?.email ?? 'teacher@tuition.com'}
-          subject={formState.subject}
-          qualification={formState.qualification}
-          experience={formState.experience}
-          bio={formState.bio}
-          hourlyRate={formState.hourlyRate}
-          zoomLink={formState.zoomLink}
-          onSave={handleSave}
-        />
-        <div className="space-y-6">
-          <TeacherProfileSummary
-            activeClasses={activeClasses}
-            upcomingClasses={upcomingClasses}
-            totalStudents={totalStudents}
-            averageRating={averageRating}
-          />
-          <StudentThemeToggle />
-          <Card>
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="font-medium">Sign out</p>
-                <p className="text-sm text-muted-foreground">End your current session.</p>
-              </div>
-              <Button
-                variant="outline"
-                className="dark:border-white/20 dark:text-white dark:hover:bg-white/10"
-                onClick={logout}
-              >
-                Logout
-              </Button>
-            </CardContent>
-          </Card>
+      {isLoading ? (
+        <div className="py-12">
+          <LoadingSpinner label="Loading profile" />
         </div>
-      </div>
+      ) : (
+        <>
+
+          <TeacherProfileHeader
+            name={formState.name}
+            email={user?.email ?? teacher?.email ?? 'teacher@tuition.com'}
+            subject={formState.subject}
+            qualification={formState.qualification}
+            status={profileStatus}
+          />
+
+          <div className="grid xl:grid-cols-[2fr_1fr] gap-6">
+            <TeacherProfileForm
+              name={formState.name}
+              email={user?.email ?? teacher?.email ?? 'teacher@tuition.com'}
+              subject={formState.subject}
+              qualification={formState.qualification}
+              experience={formState.experience}
+              bio={formState.bio}
+              hourlyRate={formState.hourlyRate}
+              zoomLink={formState.zoomLink}
+              onSave={handleSave}
+            />
+            <div className="space-y-6">
+              <TeacherProfileSummary
+                activeClasses={activeClasses}
+                upcomingClasses={upcomingClasses}
+                totalStudents={totalStudents}
+                averageRating={averageRating}
+              />
+              <StudentThemeToggle />
+              <Card>
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Sign out</p>
+                    <p className="text-sm text-muted-foreground">End your current session.</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="dark:border-white/20 dark:text-white dark:hover:bg-white/10"
+                    onClick={logout}
+                  >
+                    Logout
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
