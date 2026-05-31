@@ -9,6 +9,7 @@ import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/card';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { LoadingSpinner } from '@/app/components/ui/loading-spinner';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -128,46 +129,55 @@ export function StudentProfilePage() {
         <p className="text-muted-foreground">Manage your account, preferences, and learning summary.</p>
       </div>
 
-      <StudentProfileHeader
-        name={profile.name}
-        email={profile.email}
-        status={profile.status}
-        joinedDate={profile.joinedDate}
-      />
+      {isLoading ? (
+        <div className="py-12">
+          <LoadingSpinner label="Loading profile" />
+        </div>
+      ) : (
+        <>
 
-      <div className="grid xl:grid-cols-[2fr_1fr] gap-6">
-        <div className="space-y-6">
-          <StudentProfileForm
+          <StudentProfileHeader
             name={profile.name}
             email={profile.email}
-            phone={profile.phone}
-            onSave={handleSave}
+            status={profile.status}
+            joinedDate={profile.joinedDate}
           />
-          <StudentThemeToggle />
-        </div>
-        <div className="space-y-6">
-          <StudentProfileSummary
-            enrolledClasses={uniqueClasses.length}
-            upcomingClasses={upcomingClasses}
-            pendingPayments={pendingPayments}
-          />
-          <Card>
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="font-medium">Sign out</p>
-                <p className="text-sm text-muted-foreground">End your current session.</p>
-              </div>
-              <Button
-                variant="outline"
-                className="dark:border-white/20 dark:text-white dark:hover:bg-white/10"
-                onClick={logout}
-              >
-                Logout
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+
+          <div className="grid xl:grid-cols-[2fr_1fr] gap-6">
+            <div className="space-y-6">
+              <StudentProfileForm
+                name={profile.name}
+                email={profile.email}
+                phone={profile.phone}
+                onSave={handleSave}
+              />
+              <StudentThemeToggle />
+            </div>
+            <div className="space-y-6">
+              <StudentProfileSummary
+                enrolledClasses={uniqueClasses.length}
+                upcomingClasses={upcomingClasses}
+                pendingPayments={pendingPayments}
+              />
+              <Card>
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Sign out</p>
+                    <p className="text-sm text-muted-foreground">End your current session.</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="dark:border-white/20 dark:text-white dark:hover:bg-white/10"
+                    onClick={logout}
+                  >
+                    Logout
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

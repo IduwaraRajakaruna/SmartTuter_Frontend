@@ -19,6 +19,7 @@ import {
 } from '@/app/components/ui/table';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { LoadingSpinner } from '@/app/components/ui/loading-spinner';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -160,7 +161,13 @@ export function AdminDashboard() {
       )}
 
       {/* Pending Teacher Approvals */}
-      {!isLoading && pendingTeachers.length > 0 && (
+      {isLoading ? (
+        <Card>
+          <CardContent className="py-8">
+            <LoadingSpinner label="Loading approvals" />
+          </CardContent>
+        </Card>
+      ) : pendingTeachers.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Pending Teacher Approvals</CardTitle>

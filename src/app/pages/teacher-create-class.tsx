@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { FormField } from '@/app/components/form-field';
 import { Button } from '@/app/components/ui/button';
@@ -9,12 +9,17 @@ import { Input } from '@/app/components/ui/input';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { toast } from 'sonner';
 import { useAuth } from '@/app/context/auth-context';
+import { getClassById, upsertClass } from '@/app/lib/classes-storage';
+import { Class } from '@/app/lib/mock-data';
 
 export function CreateClass() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const classId = searchParams.get('edit');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -27,6 +32,26 @@ export function CreateClass() {
     endDate: '',
     zoomLink: user?.zoomLink ?? '',
   });
+
+  useEffect(() => {
+    if (!classId) return;
+    const storedClass = getClassById(classId);
+    if (!storedClass) return;
+    if (user?.id && storedClass.teacherId !== user.id) return;
+
+    setFormData({
+      title: storedClass.title,
+      subject: storedClass.subject,
+      description: storedClass.description,
+      schedule: storedClass.schedule,
+      price: storedClass.price.toString(),
+      maxStudents: storedClass.maxStudents.toString(),
+      startDate: storedClass.startDate,
+      endDate: storedClass.endDate,
+      zoomLink: storedClass.zoomLink,
+    });
+    setIsEditing(true);
+  }, [classId, user?.id]);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -63,13 +88,26 @@ export function CreateClass() {
     }
 
     try {
-      // Mock API call - in real app this would POST to backend
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // TODO: Integrate with backend API
-      console.log('Creating class:', formData);
-      
-      toast.success('Class created successfully!');
+      const nextClass: Class = {
+        id: classId ?? `c-${Date.now()}`,
+        title: formData.title,
+        subject: formData.subject,
+        teacherId: user?.id ?? 'teacher',
+        teacherName: user?.name ?? 'Teacher',
+        description: formData.description,
+        schedule: formData.schedule,
+        zoomLink: formData.zoomLink,
+        price: Number(formData.price),
+        studentsEnrolled: 0,
+        maxStudents: Number(formData.maxStudents),
+        status: 'upcoming',
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+      };
+
+      upsertClass(nextClass);
+
+      toast.success(isEditing ? 'Class updated successfully!' : 'Class created successfully!');
       navigate('/teacher/classes');
     } catch (err) {
       setError('Failed to create class. Please try again.');
@@ -81,8 +119,12 @@ export function CreateClass() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl mb-2">Create New Class</h1>
-        <p className="text-muted-foreground">Fill in the details to create a new tuition class</p>
+        <h1 className="text-3xl mb-2">{isEditing ? 'Edit Class' : 'Create New Class'}</h1>
+        <p className="text-muted-foreground">
+          {isEditing
+            ? 'Update the details for your class'
+            : 'Fill in the details to create a new tuition class'}
+        </p>
       </div>
 
       <Card>
@@ -198,7 +240,7 @@ export function CreateClass() {
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? 'Creating...' : 'Create Class'}
+                {isEditing ? (loading ? 'Saving...' : 'Save') : (loading ? 'Creating...' : 'Create Class')}
               </Button>
             </div>
           </form>

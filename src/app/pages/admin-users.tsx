@@ -1,12 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Users, UserCheck, UserX, Search, GraduationCap } from 'lucide-react';
 import { StatCard } from '@/app/components/stat-card';
-import { mockStudents, mockTeachers, User } from '@/app/lib/mock-data';
+import { User } from '@/app/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { Input } from '@/app/components/ui/input';
 import { EmptyState } from '@/app/components/empty-state';
+import { LoadingSpinner } from '@/app/components/ui/loading-spinner';
 import {
   Table,
   TableBody,
@@ -15,11 +16,40 @@ import {
   TableHeader,
   TableRow,
 } from '@/app/components/ui/table';
+import axios from 'axios';
+import { toast } from 'sonner';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export function AdminUsersPage() {
-  const [students, setStudents] = useState(mockStudents);
-  const [teachers, setTeachers] = useState(mockTeachers);
+  const [students, setStudents] = useState<User[]>([]);
+  const [teachers, setTeachers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadUsers = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/api/admin/users`, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : undefined,
+        },
+      });
+
+      setStudents(response.data?.students || []);
+      setTeachers(response.data?.teachers || []);
+    } catch (error) {
+      console.error(error);
+      toast.error('Unable to load users.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   const activeStudents = students.filter(s => s.status === 'active');
   const activeTeachers = teachers.filter(t => t.status === 'active');
@@ -45,15 +75,31 @@ export function AdminUsersPage() {
     );
   }, [teachers, searchTerm]);
 
-  const toggleUserStatus = (user: User, role: 'student' | 'teacher') => {
+  const toggleUserStatus = async (user: User, role: 'student' | 'teacher') => {
     const updatedStatus = user.status === 'active' ? 'inactive' : 'active';
 
-    if (role === 'student') {
-      setStudents(prev => prev.map(s => (s.id === user.id ? { ...s, status: updatedStatus } : s)));
-      return;
-    }
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.patch(
+        `${API_BASE_URL}/api/admin/users/${user.id}/status`,
+        { status: updatedStatus },
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+        }
+      );
 
-    setTeachers(prev => prev.map(t => (t.id === user.id ? { ...t, status: updatedStatus } : t)));
+      const updatedUser = response.data?.user;
+      if (role === 'student') {
+        setStudents(prev => prev.map(s => (s.id === user.id ? { ...s, ...updatedUser } : s)));
+      } else {
+        setTeachers(prev => prev.map(t => (t.id === user.id ? { ...t, ...updatedUser } : t)));
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Unable to update user status.');
+    }
   };
 
   return (
@@ -117,7 +163,9 @@ export function AdminUsersPage() {
             <CardTitle>Students</CardTitle>
           </CardHeader>
           <CardContent>
-            {filteredStudents.length === 0 ? (
+            {isLoading ? (
+              <LoadingSpinner label="Loading students" className="py-6" />
+            ) : filteredStudents.length === 0 ? (
               <EmptyState message="No students found" />
             ) : (
               <Table>
@@ -169,7 +217,9 @@ export function AdminUsersPage() {
             <CardTitle>Teachers</CardTitle>
           </CardHeader>
           <CardContent>
-            {filteredTeachers.length === 0 ? (
+            {isLoading ? (
+              <LoadingSpinner label="Loading teachers" className="py-6" />
+            ) : filteredTeachers.length === 0 ? (
               <EmptyState message="No teachers found" />
             ) : (
               <Table>

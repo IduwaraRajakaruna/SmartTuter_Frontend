@@ -1,25 +1,28 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/app/components/ui/button';
 import { TeacherClassCard } from '@/app/components/teacher-class-card';
-import { mockClasses } from '@/app/lib/mock-data';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/app/context/auth-context';
+import { getTeacherClasses } from '@/app/lib/classes-storage';
 
 export function ManageClasses() {
   const { user } = useAuth();
-  const [classes, setClasses] = useState(mockClasses.filter(c => c.teacherId === 't1'));
+  const navigate = useNavigate();
+  const [classes, setClasses] = useState(() => getTeacherClasses(user?.id));
+
+  useEffect(() => {
+    setClasses(getTeacherClasses(user?.id));
+  }, [user?.id]);
 
   const handleEditClass = (classId: string) => {
-    // TODO: Navigate to edit class page
-    console.log('Edit class:', classId);
-    toast.info('Edit class functionality - To be implemented');
+    navigate(`/teacher/classes/create?edit=${classId}`);
   };
 
   const handleStartSession = (classId: string) => {
     const classData = classes.find(c => c.id === classId);
-    const zoomLink = classData?.zoomLink || user?.zoomLink;
+    const zoomLink = classData?.zoomLink;
     if (zoomLink) {
       window.open(zoomLink, '_blank');
       toast.success('Opening Zoom session...');
