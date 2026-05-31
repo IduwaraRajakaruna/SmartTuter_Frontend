@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/app/components/ui/button';
 import { GraduationCap } from 'lucide-react';
+import { useAuth } from '@/app/context/auth-context';
 
 export function PublicNav() {
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
   return (
     <nav className="border-b">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -17,12 +20,16 @@ export function PublicNav() {
           <Link to="/teachers">
             <Button variant="ghost">Our Teachers</Button>
           </Link>
-          <Link to="/login">
-            <Button variant="outline">Login</Button>
-          </Link>
-          <Link to="/register">
-            <Button variant="cta">Get Started</Button>
-          </Link>
+          {!isLoggedIn && (
+            <>
+              <Link to="/login">
+                <Button variant="outline">Login</Button>
+              </Link>
+              <Link to="/register">
+                <Button variant="cta">Get Started</Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

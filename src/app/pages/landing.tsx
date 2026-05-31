@@ -4,8 +4,12 @@ import { PublicNav } from '@/app/components/public-nav';
 import { FeatureCard } from '@/app/components/feature-card';
 import { StatsSection } from '@/app/components/stats-section';
 import { GraduationCap, BookOpen, Users, Video, Star, Award } from 'lucide-react';
+import { useAuth } from '@/app/context/auth-context';
 
 export function LandingPage() {
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
+
   const features = [
     {
       icon: BookOpen,
@@ -60,18 +64,26 @@ export function LandingPage() {
               Connect with expert tutors, access quality education, and achieve your academic goals with our comprehensive online tuition platform.
             </p>
             <div className="flex gap-4 justify-center">
-              <Link to="/register">
-                <Button size="lg" variant="cta" className="gap-2">
-                  <Users className="w-5 h-5" />
-                  Register as Student
-                </Button>
-              </Link>
-              <Link to="/register?role=teacher">
-                <Button size="lg" variant="outline" className="gap-2 border-2 border-secondary/40 hover:bg-secondary/10">
-                  <Award className="w-5 h-5" />
-                  Become a Teacher
-                </Button>
-              </Link>
+              {!isLoggedIn ? (
+                <>
+                  <Link to="/register">
+                    <Button size="lg" variant="cta" className="gap-2">
+                      <Users className="w-5 h-5" />
+                      Register as Student
+                    </Button>
+                  </Link>
+                  <Link to="/register?role=teacher">
+                    <Button size="lg" variant="outline" className="gap-2 border-2 border-secondary/40 hover:bg-secondary/10">
+                      <Award className="w-5 h-5" />
+                      Become a Teacher
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <Link to="/student/dashboard">
+                  <Button size="lg" variant="cta">Go to Dashboard</Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -118,9 +130,11 @@ export function LandingPage() {
             <p className="text-muted-foreground mb-8">
               Join thousands of students already learning with TuitionHub
             </p>
-            <Link to="/register">
-              <Button size="lg" variant="cta">Sign Up Now</Button>
-            </Link>
+            {!isLoggedIn ? (
+              <Link to="/register">
+                <Button size="lg" variant="cta">Sign Up Now</Button>
+              </Link>
+            ) : null}
           </div>
         </div>
       </section>
